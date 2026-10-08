@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Πιθανότητα απαγορευτικού απόπλου ανά γραμμή για τις επόμενες 7 μέρες.">
+<title>Αποπλέει;</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f3f6f8; --surface:#ffffff; --ink:#0f2233; --muted:#5a6f80; --line:#d6e0e7;
+  --accent:#1d5fa3; --accent-ink:#ffffff;
+  --ok:#2f8a57; --warn:#c98a10; --bad:#c23b2e; --ok-bg:#e3f3ea; --warn-bg:#fbf0d6; --bad-bg:#f9e1de;
+  --font-ui:"Commissioner",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-data:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1620; --surface:#122230; --ink:#e4edf3; --muted:#90a6b6; --line:#24384a;
+  --accent:#6aa9e8; --accent-ink:#0b1620;
+  --ok:#5cc28a; --warn:#e8b54a; --bad:#f07a6c; --ok-bg:#16352a; --warn-bg:#3a2e12; --bad-bg:#40201d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1620; --surface:#122230; --ink:#e4edf3; --muted:#90a6b6; --line:#24384a;
+  --accent:#6aa9e8; --accent-ink:#0b1620;
+  --ok:#5cc28a; --warn:#e8b54a; --bad:#f07a6c; --ok-bg:#16352a; --warn-bg:#3a2e12; --bad-bg:#40201d; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px}
+h1{font-size:2rem;font-weight:800;letter-spacing:-.02em;margin:0;line-height:1.1;text-wrap:balance}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:4px 0 0;max-width:60ch}
+.status{font-family:var(--font-data);font-size:.75rem;color:var(--muted);text-align:right}
+.banner{border:1px solid var(--warn);background:var(--warn-bg);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.controls{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+@media (max-width:620px){.controls{grid-template-columns:1fr}}
+.lbl{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+select{width:100%;font:inherit;font-weight:600;font-size:1rem;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);flex-wrap:wrap}
+.seg button{font:inherit;font-size:.88rem;font-weight:500;border:0;background:transparent;color:var(--ink);padding:10px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+@media (max-width:620px){.days{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.day{font:inherit;color:var(--ink);text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:8px 9px;cursor:pointer;display:grid;gap:2px;min-width:0}
+.day[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day .dn{font-size:.78rem;color:var(--muted);font-weight:500}
+.day .pct{font-family:var(--font-data);font-size:1.35rem;font-weight:600;line-height:1.1}
+.day .bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.day .bar i{display:block;height:100%}
+.day .bf{font-family:var(--font-data);font-size:.72rem;color:var(--muted)}
+.lv-ok{color:var(--ok)} .lv-warn{color:var(--warn)} .lv-bad{color:var(--bad)}
+.bg-ok{background:var(--ok)} .bg-warn{background:var(--warn)} .bg-bad{background:var(--bad)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:16px}
+.verdict{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.pill{font-weight:700;font-size:.85rem;padding:5px 12px;border-radius:999px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+.verdict h2{margin:0;font-size:1.25rem;text-wrap:balance}
+.advice{margin:0;color:var(--muted);max-width:65ch}
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.slot{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:2px;min-width:0}
+.slot .t{font-size:.75rem;color:var(--muted)}
+.slot .v{font-family:var(--font-data);font-size:1.15rem;font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fact .k{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fact .v{font-family:var(--font-data);font-weight:600;font-variant-numeric:tabular-nums}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:520px;height:auto}
+.chart text{font-family:var(--font-data);font-size:10px;fill:var(--muted)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .thr{stroke:var(--bad);stroke-width:1.5;stroke-dasharray:4 3}
+.chart .b-ok{fill:var(--ok)} .chart .b-warn{fill:var(--warn)} .chart .b-bad{fill:var(--bad)}
+.chart .wave{fill:none;stroke:var(--accent);stroke-width:2}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+summary{cursor:pointer;font-weight:600}
+details p,details li{color:var(--muted);max-width:68ch}
+table{border-collapse:collapse;font-size:.85rem}
+td,th{border-bottom:1px solid var(--line);padding:4px 10px 4px 0;text-align:left}
+td{font-family:var(--font-data)}
+.foot{font-size:.8rem;color:var(--muted)}
+.foot a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.day .bar i{transition:width .4s ease}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Αποπλέει<span>;</span></h1>
+      <p class="sub">Πιθανότητα απαγορευτικού απόπλου για τις επόμενες 7 μέρες, από την πρόγνωση ανέμου και κύματος πάνω στη διαδρομή του πλοίου.</p>
+    </div>
+    <div class="status" id="status">Φόρτωση…</div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="controls">
+    <div>
+      <label class="lbl" for="route">Γραμμή</label>
+      <select id="route"></select>
+    </div>
+    <div>
+      <span class="lbl" id="vlbl">Τύπος πλοίου</span>
+      <div class="seg" role="group" aria-labelledby="vlbl" id="vessel"></div>
+    </div>
+  </div>
+
+  <div class="days" id="days"></div>
+
+  <section class="panel" id="detail" aria-live="polite"></section>
+
+  <details>
+    <summary>Πώς υπολογίζεται ο κίνδυνος</summary>
+    <p>Για κάθε γραμμή παίρνουμε 2 έως 3 σημεία στα πιο εκτεθειμένα περάσματα (π.χ. στενό Καφηρέα, κανάλι Τήνου–Μυκόνου). Για κάθε ώρα υπολογίζουμε:</p>
+    <ul>
+      <li>Ένταση ανέμου σε μποφόρ, με επιπλέον βάρος στις ριπές.</li>
+      <li>Μπόνους +0,5 μποφόρ όταν ο άνεμος φυσάει από την πλευρά που εκθέτει τη συγκεκριμένη γραμμή.</li>
+      <li>Ισοδύναμο κύματος: 3,5 + 1,6 × σημαντικό ύψος κύματος (m). Κρατάμε όποιο από τα δύο είναι χειρότερο.</li>
+    </ul>
+    <p>Η τιμή αυτή περνά από λογιστική καμπύλη με κέντρο το τυπικό όριο κάθε τύπου πλοίου:</p>
+    <table><thead><tr><th>Τύπος</th><th>50% πιθανότητα στα</th></tr></thead>
+      <tbody id="thrTable"></tbody></table>
+    <p>Για τις γραμμές Ραφήνα–Τήνος, Πειραιάς–Σύρος, Πειραιάς–Σαντορίνη και Λαύριο–Κέα, το όριο του συμβατικού πλοίου έχει εκπαιδευτεί από το ιστορικό απαγορευτικών 2018–2025.</p>
+    <p>Είναι εκτίμηση, όχι επίσημη απόφαση. Το απαγορευτικό το βγάζει η Λιμενική Αρχή, και ο πλοίαρχος μπορεί να κρίνει διαφορετικά ανάλογα με το πλοίο και τη φορά του ανέμου.</p>
+  </details>
+
+  <p class="foot">Πρόγνωση: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0). Επίσημη ενημέρωση: <a href="https://www.hcg.gr" target="_blank" rel="noopener">Λιμενικό Σώμα</a> και το λιμεναρχείο αναχώρησης. Πριν ταξιδέψεις, επιβεβαίωσε πάντα με την εταιρεία.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+const VESSELS={
+  conv:{name:"Συμβατικό",thr:8.6,note:"Συμβατικά Ε/Γ-Ο/Γ, όπως Blue Star"},
+  fast:{name:"Ταχύπλοο",thr:7.2,note:"Καταμαράν και ταχύπλοα"},
+  open:{name:"Ανοιχτού τύπου",thr:7.0,note:"Μικρά πορθμεία ανοιχτού τύπου"}
+};
+const ROUTES=[
+  {id:"rafina-tinos",name:"Ραφήνα → Άνδρος · Τήνος · Μύκονος",pts:[[38.02,24.55],[37.75,24.95],[37.50,25.25]],exposed:[0,30],vessel:"conv"},
+  {id:"piraeus-syros",name:"Πειραιάς → Σύρος · Τήνος · Μύκονος",pts:[[37.70,23.90],[37.55,24.55],[37.45,25.05]],exposed:[0,30],vessel:"conv"},
+  {id:"piraeus-santorini",name:"Πειραιάς → Πάρος · Νάξος · Σαντορίνη",pts:[[37.55,24.20],[37.15,25.15],[36.60,25.40]],exposed:[0,330],vessel:"conv"},
+  {id:"lavrio-kea",name:"Λαύριο → Κέα · Κύθνος",pts:[[37.66,24.15],[37.48,24.38]],exposed:[0,30],vessel:"conv"},
+  {id:"piraeus-heraklion",name:"Πειραιάς → Ηράκλειο",pts:[[37.30,24.00],[36.25,24.80],[35.55,25.10]],exposed:[0,330],vessel:"conv"},
+  {id:"argosaronic",name:"Πειραιάς → Αίγινα · Πόρος · Ύδρα",pts:[[37.80,23.55],[37.45,23.48]],exposed:[180,210],vessel:"fast"},
+  {id:"kyllini-zakynthos",name:"Κυλλήνη → Ζάκυνθος",pts:[[37.85,21.05],[37.78,20.95]],exposed:[180,240],vessel:"conv"},
+  {id:"volos-sporades",name:"Βόλος → Σκιάθος · Σκόπελος · Αλόννησος",pts:[[39.20,23.30],[39.15,23.75]],exposed:[0,30],vessel:"fast"},
+  {id:"agmarina-styra",name:"Αγία Μαρίνα → Νέα Στύρα",pts:[[38.18,24.12]],exposed:[0,30],vessel:"open"},
+  {id:"corfu-igoumenitsa",name:"Κέρκυρα → Ηγουμενίτσα",pts:[[39.55,20.10]],exposed:[180,330],vessel:"open"},
+  {id:"kavala-thasos",name:"Καβάλα → Πρίνος (Θάσος)",pts:[[40.82,24.50]],exposed:[0,45],vessel:"open"}
+];
+// Όρια που έμαθε το ml/train.py (thresholds.json, σε κόμβους, 2018–2025).
+const LEARNED={"lavrio-kea":40.0,"piraeus-santorini":36.0,"piraeus-syros":35.5,"rafina-tinos":36.0};
+const WIND_NAMES=["Τραμουντάνα","Γραίγος","Λεβάντες","Σορόκος","Όστρια","Γαρμπής","Πουνέντες","Μαΐστρος"];
+const DIRS=["Β","ΒΑ","Α","ΝΑ","Ν","ΝΔ","Δ","ΒΔ"];
+const KT=[1,4,7,11,17,22,28,34,41,48,56,64];
+const SLOTS=[{n:"Πρωί",a:6,b:11},{n:"Μεσημέρι",a:12,b:17},{n:"Βράδυ",a:18,b:23}];
+const $=s=>document.querySelector(s);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+function bf(kn){if(kn==null)return 0;let b=0;for(let i=0;i<KT.length;i++){if(kn>=KT[i])b=i+1;}
+  const lo=b===0?0:KT[b-1],hi=KT[b]??(lo+8);return Math.min(12,b+(kn-lo)/(hi-lo)*0.99);}
+function angDiff(a,b){const d=Math.abs(a-b)%360;return d>180?360-d:d;}
+function dir8(d){return Math.round(((d%360)+360)%360/45)%8;}
+function sev(route,w){
+  const b=bf(w.kn),g=bf(w.gust);
+  let s=b+0.25*Math.max(0,g-b);
+  if(route.exposed.some(e=>angDiff(e,w.dir)<=45))s+=0.5;
+  const waveEq=w.hs!=null?3.5+1.6*w.hs:0;
+  return Math.max(s,waveEq);
+}
+function prob(s,thr){return 1/(1+Math.exp(-1.8*(s-thr)));}
+function lvl(p){return p<0.25?"ok":p<0.6?"warn":"bad";}
+const LVL_TXT={ok:"Κανονικά δρομολόγια",warn:"Πιθανά προβλήματα",bad:"Πιθανό απαγορευτικό"};
+function advice(l,slotBest){
+  if(l==="ok")return "Δεν φαίνεται κίνδυνος για τη γραμμή αυτή τη μέρα. Ταξίδεψε κανονικά.";
+  if(l==="warn")return "Ο καιρός είναι κοντά στο όριο. Έλεγξε την εταιρεία το πρωί της αναχώρησης"+(slotBest?" και προτίμησε το δρομολόγιο του "+slotBest.toLowerCase():"")+". Κράτα εισιτήριο με δυνατότητα αλλαγής.";
+  return "Υπάρχει σοβαρή πιθανότητα να μη φύγουν πλοία. Αν μπορείς, μετακίνησε το ταξίδι μία μέρα ή κλείσε διαμονή που ακυρώνεται δωρεάν.";
+}
+
+const cache={};
+async function fetchLive(route){
+  const lat=route.pts.map(p=>p[0]).join(","),lon=route.pts.map(p=>p[1]).join(",");
+  const q="&forecast_days=7&timezone=Europe%2FAthens&cell_selection=sea";
+  const fu="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kn"+q;
+  const mu="https://marine-api.open-meteo.com/v1/marine?latitude="+lat+"&longitude="+lon+"&hourly=wave_height"+q;
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),8000);
+  try{
+    const [fr,mr]=await Promise.all([fetch(fu,{signal:ctl.signal}),fetch(mu,{signal:ctl.signal}).catch(()=>null)]);
+    if(!fr.ok)throw new Error("forecast "+fr.status);
+    let f=await fr.json();let m=mr&&mr.ok?await mr.json():null;
+    if(!Array.isArray(f))f=[f]; if(m&&!Array.isArray(m))m=[m];
+    const time=f[0].hourly.time;
+    return {live:true,time,pts:f.map((pf,i)=>({kn:pf.hourly.wind_speed_10m,gust:pf.hourly.wind_gusts_10m,dir:pf.hourly.wind_direction_10m,hs:m&&m[i]?m[i].hourly.wave_height:null}))};
+  }finally{clearTimeout(t);}
+}
+function sampleData(route){
+  const time=[],start=new Date();start.setHours(0,0,0,0);
+  for(let h=0;h<168;h++){const d=new Date(start.getTime()+h*3600e3);
+    time.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+"T"+String(d.getHours()).padStart(2,"0")+":00");}
+  const pts=route.pts.map((p,i)=>{const kn=[],gust=[],dir=[],hs=[];
+    for(let h=0;h<168;h++){const day=h/24,hr=h%24;
+      const ev=30*Math.exp(-Math.pow((day-2.6)/0.9,2))+20*Math.exp(-Math.pow((day-5.6)/0.6,2));
+      const diurnal=4*Math.sin((hr-9)/24*2*Math.PI);
+      const v=Math.max(3,9+ev+diurnal+i*1.5+3*Math.sin(h*0.7+i));
+      kn.push(+v.toFixed(1));gust.push(+(v*1.35).toFixed(1));
+      dir.push(ev>10?10+i*8:(200+h*3)%360);
+      hs.push(+(0.3+v*0.07).toFixed(2));}
+    return {kn,gust,dir,hs};});
+  return {live:false,time,pts};
+}
+async function getData(route){
+  if(cache[route.id])return cache[route.id];
+  let d;try{d=await fetchLive(route);}catch(e){d=sampleData(route);}
+  cache[route.id]=d;return d;
+}
+
+function analyse(route,data,thr){
+  const hours=data.time.map((t,i)=>{
+    let worst=null;
+    data.pts.forEach(p=>{const w={kn:p.kn[i],gust:p.gust[i],dir:p.dir[i],hs:p.hs?p.hs[i]:null};
+      if(w.kn==null)return;const s=sev(route,w);if(!worst||s>worst.s)worst={...w,s};});
+    return {t,date:t.slice(0,10),hr:+t.slice(11,13),...(worst||{s:0,kn:0,gust:0,dir:0,hs:null})};
+  });
+  const days=[];
+  hours.forEach(h=>{let d=days.find(x=>x.date===h.date);if(!d){d={date:h.date,hours:[]};days.push(d);}d.hours.push(h);});
+  days.forEach(d=>{
+    const win=d.hours.filter(h=>h.hr>=6);
+    const peak=win.reduce((a,b)=>b.s>a.s?b:a,win[0]||d.hours[0]);
+    d.peak=peak;d.p=prob(peak.s,thr);
+    d.slots=SLOTS.map(sl=>{const hs=d.hours.filter(h=>h.hr>=sl.a&&h.hr<=sl.b);
+      const pk=hs.length?hs.reduce((a,b)=>b.s>a.s?b:a):null;return {...sl,p:pk?prob(pk.s,thr):null,pk};});
+  });
+  return days.slice(0,7);
+}
+
+let state={route:ROUTES[0].id,vessel:null,day:0};
+const fmtDay=d=>{const x=new Date(d+"T12:00");return {dn:x.toLocaleDateString("el-GR",{weekday:"short"}),dd:x.toLocaleDateString("el-GR",{day:"numeric",month:"short"}),full:x.toLocaleDateString("el-GR",{weekday:"long",day:"numeric",month:"long"})};};
+const pct=p=>Math.round(p*100)+"%";
+
+function renderControls(){
+  $("#route").innerHTML=ROUTES.map(r=>'<option value="'+r.id+'">'+r.name+'</option>').join("");
+  $("#vessel").innerHTML=Object.entries(VESSELS).map(([k,v])=>'<button type="button" data-v="'+k+'" title="'+v.note+'">'+v.name+'</button>').join("");
+  $("#thrTable").innerHTML=Object.values(VESSELS).map(v=>"<tr><td style='font-family:var(--font-ui)'>"+v.name+"</td><td>"+v.thr.toFixed(1).replace(".",",")+" Bf</td></tr>").join("");
+  $("#route").addEventListener("change",e=>{state.route=e.target.value;state.vessel=null;state.day=0;persist();load();});
+  $("#vessel").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;state.vessel=b.dataset.v;persist();load();});
+}
+function persist(){store.set("apopleo.route",state.route);try{history.replaceState(null,"","#"+state.route);}catch(e){}}
+
+async function load(){
+  const route=ROUTES.find(r=>r.id===state.route)||ROUTES[0];
+  $("#route").value=route.id;
+  const vk=state.vessel||route.vessel;
+  document.querySelectorAll("#vessel button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===vk)));
+  $("#status").textContent="Φόρτωση πρόγνωσης…";
+  const data=await getData(route);
+  const thrUse=(vk==="conv"&&LEARNED[route.id])?bf(LEARNED[route.id]):VESSELS[vk].thr;window.__thr=thrUse;
+  const days=analyse(route,data,thrUse);
+  const banner=$("#banner");
+  if(data.live){banner.hidden=true;$("#status").textContent="Ζωντανή πρόγνωση · "+new Date().toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"});}
+  else{banner.hidden=false;banner.textContent="Δεν ήταν δυνατή η σύνδεση με την υπηρεσία καιρού, οπότε βλέπεις παράδειγμα πρόγνωσης, όχι πραγματικά δεδομένα. Δοκίμασε ξανά σε λίγο.";$("#status").textContent="Παράδειγμα δεδομένων";}
+  renderDays(days);renderDetail(route,vk,days[state.day]||days[0]);
+  window.__days=days;window.__route=route;window.__vk=vk;
+}
+function renderDays(days){
+  $("#days").innerHTML=days.map((d,i)=>{const f=fmtDay(d.date),l=lvl(d.p);
+    return '<button type="button" class="day" data-i="'+i+'" aria-pressed="'+(i===state.day)+'" aria-label="'+f.full+', κίνδυνος '+pct(d.p)+'">'+
+      '<span class="dn">'+(i===0?"Σήμερα":f.dn)+' '+f.dd.split(" ")[0]+'</span>'+
+      '<span class="pct lv-'+l+'">'+pct(d.p)+'</span>'+
+      '<span class="bar"><i class="bg-'+l+'" style="width:'+Math.max(4,d.p*100)+'%"></i></span>'+
+      '<span class="bf">έως '+d.peak.s.toFixed(1).replace(".",",")+' Bf</span></button>';}).join("");
+}
+$("#days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;state.day=+b.dataset.i;
+  document.querySelectorAll(".day").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  renderDetail(window.__route,window.__vk,window.__days[state.day]);});
+
+function renderDetail(route,vk,d){
+  const l=lvl(d.p),f=fmtDay(d.date),pk=d.peak,di=dir8(pk.dir);
+  const okSlots=d.slots.filter(s=>s.p!=null);
+  const best=okSlots.length?okSlots.reduce((a,b)=>b.p<a.p?b:a):null;
+  const thr=window.__thr||VESSELS[vk].thr;
+  $("#detail").innerHTML=
+    '<div class="verdict"><span class="pill '+l+'">'+LVL_TXT[l]+'</span><h2>'+f.full+' · '+pct(d.p)+' πιθανότητα</h2></div>'+
+    '<p class="advice">'+advice(l,l==="warn"&&best?best.n:null)+'</p>'+
+    '<div class="slots">'+d.slots.map(s=>s.p==null?'':'<div class="slot"><span class="t">'+s.n+' · '+String(s.a).padStart(2,"0")+':00–'+s.b+':59</span><span class="v lv-'+lvl(s.p)+'">'+pct(s.p)+'</span></div>').join("")+'</div>'+
+    '<div class="facts">'+
+      fact("Μέγιστος άνεμος",Math.round(pk.kn)+" kn · "+Math.floor(bf(pk.kn))+" Bf")+
+      fact("Ριπές",Math.round(pk.gust)+" kn")+
+      fact("Φορά",DIRS[di]+" · "+WIND_NAMES[di])+
+      fact("Κύμα",pk.hs!=null?pk.hs.toFixed(1).replace(".",",")+" m":"—")+
+    '</div>'+
+    '<div class="chart">'+chart(d.hours,thr)+'</div>'+
+    '<div class="legend"><span><i class="bg-ok"></i>χαμηλός</span><span><i class="bg-warn"></i>οριακός</span><span><i class="bg-bad"></i>υψηλός κίνδυνος</span><span>— — όριο '+VESSELS[vk].name.toLowerCase()+'</span><span style="color:var(--accent)">━ ύψος κύματος (δεξιός άξονας)</span></div>';
+}
+function fact(k,v){return '<div class="fact"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';}
+function chart(hours,thr){
+  const W=720,H=220,L=34,R=34,T=12,B=26,iw=W-L-R,ih=H-T-B,maxS=12,maxH=6;
+  const y=s=>T+ih-(Math.min(s,maxS)/maxS)*ih, yh=h=>T+ih-(Math.min(h,maxH)/maxH)*ih;
+  const bw=iw/24;let g="";
+  [0,3,6,9,12].forEach(v=>{g+='<line class="grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'"/><text x="'+(L-6)+'" y="'+(y(v)+3)+'" text-anchor="end">'+v+'</text>';});
+  [0,2,4,6].forEach(v=>{g+='<text x="'+(W-R+6)+'" y="'+(yh(v)+3)+'">'+v+'m</text>';});
+  g+='<text x="'+(L+4)+'" y="'+(T+10)+'">Bf</text>';
+  hours.forEach((h,i)=>{const x=L+i*bw+1.5,p=prob(h.s,thr);
+    g+='<rect class="b-'+lvl(p)+'" x="'+x+'" y="'+y(h.s)+'" width="'+(bw-3)+'" height="'+(T+ih-y(h.s))+'" rx="2"><title>'+String(h.hr).padStart(2,"0")+':00 · '+h.s.toFixed(1)+' Bf · '+pct(p)+'</title></rect>';
+    if(i%3===0)g+='<text x="'+(x+bw/2-1.5)+'" y="'+(H-8)+'" text-anchor="middle">'+String(h.hr).padStart(2,"0")+'</text>';});
+  const wv=hours.filter(h=>h.hs!=null);
+  if(wv.length)g+='<polyline class="wave" points="'+hours.map((h,i)=>h.hs==null?"":(L+i*bw+bw/2)+","+yh(h.hs)).filter(Boolean).join(" ")+'"/>';
+  g+='<line class="thr" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(thr)+'" y2="'+y(thr)+'"/>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ωριαίος δείκτης κινδύνου σε μποφόρ">'+g+'</svg>';
+}
+
+renderControls();
+const hash=(location.hash||"").slice(1),saved=store.get("apopleo.route");
+if(ROUTES.some(r=>r.id===hash))state.route=hash;else if(saved&&ROUTES.some(r=>r.id===saved))state.route=saved;
+load();
+})();
+</script>
+</body>
+</html>
