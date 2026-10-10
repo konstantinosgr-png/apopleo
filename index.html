@@ -49,6 +49,16 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outlin
 .day .bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
 .day .bar i{display:block;height:100%}
 .day .bf{font-family:var(--font-data);font-size:.72rem;color:var(--muted)}
+.day .ag{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day .ags{display:none}
+@media (max-width:620px){.day .agl{display:none}.day .ags{display:inline}}
+.mm{display:grid;gap:6px}
+.mmh{font-size:.85rem;font-weight:600}
+.mmn{font-size:.8rem;color:var(--muted);max-width:68ch}
+.mmt{overflow-x:auto}
+.mmt table{width:100%}
+.mmt td.mn{font-family:var(--font-ui)}
+.mmt th{font-size:.72rem;font-weight:600;color:var(--muted)}
 .lv-ok{color:var(--ok)} .lv-warn{color:var(--warn)} .lv-bad{color:var(--bad)}
 .bg-ok{background:var(--ok)} .bg-warn{background:var(--warn)} .bg-bad{background:var(--bad)}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:16px}
@@ -123,6 +133,7 @@ td{font-family:var(--font-data)}
     <p>Η τιμή αυτή περνά από λογιστική καμπύλη με κέντρο το τυπικό όριο κάθε τύπου πλοίου:</p>
     <table><thead><tr><th>Τύπος</th><th>50% πιθανότητα στα</th></tr></thead>
       <tbody id="thrTable"></tbody></table>
+    <p>Τα ίδια υπολογίζονται χωριστά για έξι μοντέλα πρόγνωσης (ECMWF, ICON, GFS, UKMO, ARPEGE, GEM), με το ίδιο κύμα. Όταν για μια μέρα υπάρχουν τουλάχιστον 4 μοντέλα, η πιθανότητα που βλέπεις είναι το μισό από την καμπύλη στον διάμεσο κίνδυνο των μοντέλων και το μισό από το ποσοστό των μοντέλων που περνούν το όριο. Σε ιστορικές προγνώσεις 12/2022–9/2025 ο συνδυασμός αυτός έπεσε πιο κοντά στα πραγματικά απαγορευτικά από ένα μόνο μοντέλο, με λιγότερους ψευδείς συναγερμούς. Το «συμφωνούν 5/6» δείχνει πόσα μοντέλα βγάζουν το ίδιο συμπέρασμα (πάνω ή κάτω από 50%). Αν κάποιο μοντέλο δεν απαντήσει, συνεχίζουμε με τα υπόλοιπα.</p>
     <p>Για τις γραμμές Ραφήνα–Τήνος, Πειραιάς–Σύρος, Πειραιάς–Σαντορίνη και Λαύριο–Κέα, το όριο του συμβατικού πλοίου έχει εκπαιδευτεί από το ιστορικό απαγορευτικών 2018–2025.</p>
     <p>Είναι εκτίμηση, όχι επίσημη απόφαση. Το απαγορευτικό το βγάζει η Λιμενική Αρχή, και ο πλοίαρχος μπορεί να κρίνει διαφορετικά ανάλογα με το πλοίο και τη φορά του ανέμου.</p>
   </details>
@@ -184,27 +195,41 @@ function advice(l,slotBest){
   return "Υπάρχει σοβαρή πιθανότητα να μη φύγουν πλοία. Αν μπορείς, μετακίνησε το ταξίδι μία μέρα ή κλείσε διαμονή που ακυρώνεται δωρεάν.";
 }
 
+// Μοντέλα πρόγνωσης που συγκρίνουμε, όλα σε ΕΝΑ αίτημα (models=...). Το best_match είναι η πρόγνωση που δείχνει
+// η εφαρμογή (ο συνδυασμός του Open-Meteo)· τα υπόλοιπα δίνουν τη «δεύτερη γνώμη» και τη συμφωνία.
+const MODELS=[{id:"ecmwf_ifs",name:"ECMWF IFS"},{id:"icon_seamless",name:"ICON · DWD"},{id:"gfs_seamless",name:"GFS · NOAA"},
+  {id:"ukmo_seamless",name:"UKMO"},{id:"meteofrance_seamless",name:"ARPEGE · Météo-France"},{id:"gem_seamless",name:"GEM · Καναδάς"}];
 const cache={};
+const arr=a=>Array.isArray(a)?a:[];
+async function getJSON(url,signal){const r=await fetch(url,{signal});if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}
 async function fetchLive(route){
   const lat=route.pts.map(p=>p[0]).join(","),lon=route.pts.map(p=>p[1]).join(",");
   const q="&forecast_days=7&timezone=Europe%2FAthens&timeformat=unixtime&cell_selection=sea";
   const fu="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kn"+q;
+  const mmu=fu+"&models=best_match,"+MODELS.map(m=>m.id).join(",");
   const mu="https://marine-api.open-meteo.com/v1/marine?latitude="+lat+"&longitude="+lon+"&hourly=wave_height"+q;
   const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),8000);
   try{
-    const [fr,mr]=await Promise.all([fetch(fu,{signal:ctl.signal}),fetch(mu,{signal:ctl.signal}).catch(()=>null)]);
-    if(!fr.ok)throw new Error("forecast "+fr.status);
-    let f=await fr.json();let m=mr&&mr.ok?await mr.json():null;
+    const mp=getJSON(mu,ctl.signal).catch(()=>null);
+    // πρώτα όλα τα μοντέλα μαζί· αν το αίτημα αποτύχει (π.χ. ένα μοντέλο εκτός λειτουργίας), η απλή πρόγνωση όπως πριν
+    let f=await getJSON(mmu,ctl.signal).catch(()=>null);
+    if(!f){if(ctl.signal.aborted)throw new Error("timeout");f=await getJSON(fu,ctl.signal);}  // όχι δεύτερο αίτημα μετά το όριο χρόνου
+    let m=await mp;
     if(!Array.isArray(f))f=[f]; if(m&&!Array.isArray(m))m=[m];
     const ut=f[0]&&f[0].hourly&&f[0].hourly.time;
     if(!Array.isArray(ut)||!ut.length)throw new Error("forecast empty");
     const time=ut.map(localStamp);
     const waves=i=>{const mh=m&&m[i]&&m[i].hourly;if(!mh||!Array.isArray(mh.time)||!Array.isArray(mh.wave_height))return null;
       const at=new Map(mh.time.map((x,k)=>[x,mh.wave_height[k]]));return ut.map(x=>at.has(x)?at.get(x):null);};
-    const arr=a=>Array.isArray(a)?a:[];
-    const pts=f.map((pf,i)=>{const h=(pf&&pf.hourly)||{};return {kn:arr(h.wind_speed_10m),gust:arr(h.wind_gusts_10m),dir:arr(h.wind_direction_10m),hs:waves(i)};});
-    if(!pts.some(p=>p.kn.some(fin)))throw new Error("forecast without wind");
-    return {live:true,time,pts};
+    const W=f.map((_,i)=>waves(i));
+    // σημεία ενός μοντέλου· για το best_match δεχόμαστε και τα κλειδιά χωρίς κατάληξη (απλό αίτημα)
+    const ptsOf=(id,plain)=>f.map((pf,i)=>{const h=(pf&&pf.hourly)||{},k=n=>h[n+"_"+id]!==undefined?h[n+"_"+id]:(plain?h[n]:undefined);
+      return {kn:arr(k("wind_speed_10m")),gust:arr(k("wind_gusts_10m")),dir:arr(k("wind_direction_10m")),hs:W[i]};});
+    const hasWind=pts=>pts.some(p=>p.kn.some(fin));
+    const models=MODELS.map(md=>({...md,pts:ptsOf(md.id,false)})).filter(md=>hasWind(md.pts));
+    let pts=ptsOf("best_match",true);
+    if(!hasWind(pts)){if(!models.length)throw new Error("forecast without wind");pts=models[0].pts;}  // χωρίς best_match: το πρώτο διαθέσιμο
+    return {live:true,time,pts,models};
   }finally{clearTimeout(t);}
 }
 const ATH=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Athens",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
@@ -230,24 +255,56 @@ function getData(route){
   cache[route.id]=pr;return pr;
 }
 
-function analyse(route,data,thr){
-  const hours=data.time.map((t,i)=>{
+function dayList(route,time,pts,thr){
+  const hours=time.map((t,i)=>{
     let worst=null;
-    data.pts.forEach(p=>{const w={kn:p.kn&&p.kn[i],gust:p.gust&&p.gust[i],dir:p.dir&&p.dir[i],hs:p.hs?p.hs[i]:null};
+    pts.forEach(p=>{const w={kn:p.kn&&p.kn[i],gust:p.gust&&p.gust[i],dir:p.dir&&p.dir[i],hs:p.hs?p.hs[i]:null};
       if(!fin(w.kn))return;const s=sev(route,w);if(!worst||s>worst.s)worst={...w,s};});
-    return {t,date:t.slice(0,10),hr:+t.slice(11,13),...(worst||{s:0,kn:0,gust:0,dir:0,hs:null})};
+    return {t,date:t.slice(0,10),hr:+t.slice(11,13),ok:!!worst,...(worst||{s:0,kn:0,gust:0,dir:0,hs:null})};
   });
   const days=[];
   hours.forEach(h=>{let d=days.find(x=>x.date===h.date);if(!d){d={date:h.date,hours:[]};days.push(d);}d.hours.push(h);});
   days.forEach(d=>{
     const win=d.hours.filter(h=>h.hr>=6);
     const peak=win.reduce((a,b)=>b.s>a.s?b:a,win[0]||d.hours[0]);
-    d.peak=peak;d.p=prob(peak.s,thr);
-    const mx=k=>{const v=win.map(h=>h[k]).filter(fin);return v.length?Math.max(...v):null;};
+    d.peak=peak;d.p=prob(peak.s,thr);d.nOk=win.filter(h=>h.ok).length;
+    const mx=k=>{const v=win.filter(h=>h.ok).map(h=>h[k]).filter(fin);return v.length?Math.max(...v):null;};
     d.max={kn:mx("kn"),gust:mx("gust"),hs:mx("hs")};
-    d.slots=SLOTS.map(sl=>{const hs=d.hours.filter(h=>h.hr>=sl.a&&h.hr<=sl.b);
-      const pk=hs.length?hs.reduce((a,b)=>b.s>a.s?b:a):null;return {...sl,p:pk?prob(pk.s,thr):null,pk};});
   });
+  return days;
+}
+// Ανά μέρα: η εκτίμηση κάθε μοντέλου (ίδια sev() και όριο) και πόσα συμφωνούν με την πρόγνωση της εφαρμογής.
+// Μοντέλο μετράει για μια μέρα μόνο αν έχει τουλάχιστον 12 ώρες με άνεμο στο διάστημα 06–23 (π.χ. το ARPEGE τελειώνει στη 4η–5η μέρα).
+const MM_MIN_HOURS=12;
+// Πιθανότητα που δείχνουμε (ελέγχθηκε σε ιστορικές προγνώσεις 12/2022–9/2025, δες daily/mm_eval.py):
+//   ½ · καμπύλη(διάμεσος σοβαρότητας των μοντέλων) + ½ · (μερίδιο μοντέλων πάνω από το όριο)
+// όταν υπάρχουν τουλάχιστον MM_MIN_MODELS μοντέλα για τη μέρα· αλλιώς μόνο η βασική πρόγνωση (best_match).
+const MM_MIN_MODELS=4;
+const median=a=>{const v=a.slice().sort((x,y)=>x-y),n=v.length;return n%2?v[(n-1)/2]:(v[n/2-1]+v[n/2])/2;};
+function blend(ss,thr){return 0.5*prob(median(ss),thr)+0.5*ss.filter(x=>x>=thr).length/ss.length;}
+function modelDays(route,data,thr,days){
+  const per=(data.models||[]).map(md=>({md,days:dayList(route,data.time,md.pts,thr)}));
+  days.forEach(d=>{
+    d.p_base=d.p;
+    const got=per.map(({md,days:ds})=>{const x=ds.find(y=>y.date===d.date);return x&&x.nOk>=MM_MIN_HOURS?{md,x}:null;}).filter(Boolean);
+    if(!got.length){d.mm=null;return;}
+    const rows=got.map(({md,x})=>({id:md.id,name:md.name,s:x.peak.s,p:x.p,kn:x.max.kn}));
+    if(rows.length>=MM_MIN_MODELS){
+      d.p=blend(rows.map(r=>r.s),thr);d.blended=true;
+      d.slots.forEach(sl=>{  // ίδιος συνδυασμός ανά τμήμα της μέρας, ώστε να συμφωνεί με την ημερήσια τιμή
+        const ss=got.map(({x})=>{const hs=x.hours.filter(h=>h.ok&&h.hr>=sl.a&&h.hr<=sl.b);return hs.length>=3?Math.max(...hs.map(h=>h.s)):null;}).filter(fin);
+        if(sl.p!=null&&ss.length>=MM_MIN_MODELS)sl.p=blend(ss,thr);});
+    }
+    const ps=rows.map(r=>r.p),side=d.p>=0.5;
+    d.mm={rows,n:rows.length,agree:rows.filter(r=>(r.p>=0.5)===side).length,lo:Math.min(...ps),hi:Math.max(...ps),
+      risk:rows.filter(r=>r.p>=0.5).length};
+  });
+}
+function analyse(route,data,thr){
+  const days=dayList(route,data.time,data.pts,thr);
+  days.forEach(d=>{d.slots=SLOTS.map(sl=>{const hs=d.hours.filter(h=>h.hr>=sl.a&&h.hr<=sl.b);
+      const pk=hs.length?hs.reduce((a,b)=>b.s>a.s?b:a):null;return {...sl,p:pk?prob(pk.s,thr):null,pk};});});
+  modelDays(route,data,thr,days);
   return days.slice(0,7);
 }
 
@@ -288,12 +345,23 @@ function renderDays(days){
       '<span class="dn">'+(d.date===localStamp(Date.now()/1000).slice(0,10)?"Σήμερα":f.dn)+' '+f.dd.split(" ")[0]+'</span>'+
       '<span class="pct lv-'+l+'">'+pct(d.p)+'</span>'+
       '<span class="bar"><i class="bg-'+l+'" style="width:'+Math.max(4,d.p*100)+'%"></i></span>'+
-      '<span class="bf">έως '+d.peak.s.toFixed(1).replace(".",",")+' Bf</span></button>';}).join("");
+      '<span class="bf">έως '+d.peak.s.toFixed(1).replace(".",",")+' Bf</span>'+
+      (d.mm&&d.mm.n>1?'<span class="ag" title="'+agTitle(d)+'"><span class="agl">συμφωνούν</span><span class="ags">μοντ.</span> '+d.mm.agree+'/'+d.mm.n+'</span>':'')+'</button>';}).join("");
 }
 $("#days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;state.day=+b.dataset.i;
   document.querySelectorAll(".day").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
   renderDetail(window.__route,window.__vk,window.__days[state.day]);});
 
+function agTitle(d){return d.mm.agree+" από "+d.mm.n+" μοντέλα πρόγνωσης βγάζουν το ίδιο συμπέρασμα (πάνω ή κάτω από 50%)· εύρος "+pct(d.mm.lo)+"–"+pct(d.mm.hi);}
+function mmBlock(d){
+  if(!d.mm)return "";
+  const m=d.mm,rows=m.rows.slice().sort((a,b)=>b.p-a.p);
+  const head=m.n>1?(m.agree===m.n?"Συμφωνούν και τα "+m.n+" μοντέλα":"Συμφωνούν "+m.agree+" από "+m.n+" μοντέλα")+(pct(m.lo)===pct(m.hi)?" · όλα "+pct(m.lo):" · εύρος "+pct(m.lo)+"–"+pct(m.hi)):"Μόνο ένα μοντέλο για αυτή τη μέρα";
+  const note=d.blended?'<div class="mmn">Η πιθανότητα της μέρας συνδυάζει τα μοντέλα: μισή από τον διάμεσο κίνδυνο, μισή από το μερίδιο των μοντέλων πάνω από το όριο ('+m.risk+'/'+m.n+'). Το γράφημα δείχνει τη βασική πρόγνωση (best match), βασική εκτίμηση '+pct(d.p_base)+'.</div>':'<div class="mmn">Λιγότερα από '+MM_MIN_MODELS+' μοντέλα για αυτή τη μέρα· η πιθανότητα είναι της βασικής πρόγνωσης.</div>';
+  return '<div class="mm"><div class="mmh">'+head+'</div>'+note+'<div class="mmt"><table><thead><tr><th>Μοντέλο</th><th>Άνεμος</th><th>Κίνδυνος</th><th>Πιθ.</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td class="mn">'+r.name+'</td><td>'+(fin(r.kn)?Math.round(r.kn)+" kn":"—")+'</td><td>'+r.s.toFixed(1).replace(".",",")+' Bf</td><td class="lv-'+lvl(r.p)+'">'+pct(r.p)+'</td></tr>').join("")+
+    '</tbody></table></div></div>';
+}
 function renderDetail(route,vk,d){
   const l=lvl(d.p),f=fmtDay(d.date),pk=d.peak,di=dir8(pk.dir),mx=d.max||{};
   const okSlots=d.slots.filter(s=>s.p!=null);
@@ -310,6 +378,7 @@ function renderDetail(route,vk,d){
       fact("Κύμα",fin(mx.hs)?mx.hs.toFixed(1).replace(".",",")+" m":"—")+
     '</div>'+
     '<div class="chart">'+chart(d.hours,thr)+'</div>'+
+    mmBlock(d)+
     '<div class="legend"><span><i class="bg-ok"></i>χαμηλός</span><span><i class="bg-warn"></i>οριακός</span><span><i class="bg-bad"></i>υψηλός κίνδυνος</span><span>— — όριο '+VESSELS[vk].name.toLowerCase()+'</span><span style="color:var(--accent)">━ ύψος κύματος (δεξιός άξονας)</span></div>';
 }
 function fact(k,v){return '<div class="fact"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';}
