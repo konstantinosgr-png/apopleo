@@ -55,7 +55,7 @@ td.n{font-family:var(--font-data);font-variant-numeric:tabular-nums}
     <div class="status" id="status">Φόρτωση…</div>
   </header>
   <div class="banner" id="few" hidden></div>
-  <section class="panel"><h2>Ανά απόσταση πρόβλεψης</h2><div id="lead"></div></section>
+  <section class="panel"><h2>Ανά απόσταση πρόβλεψης</h2><p class="muted">Μετράμε την πρωινή πρόγνωση κάθε μέρας. Η βραδινή (γύρω στις 21:00) για την επόμενη μέρα φαίνεται χωριστά, όταν υπάρχει.</p><div id="lead"></div></section>
   <section class="panel"><h2>Ανά γραμμή (πρόβλεψη ίδιας ή προηγούμενης μέρας)</h2><div id="route"></div></section>
   <section class="panel"><h2>Τελευταίες μέρες</h2><p class="muted">Πρόβλεψη που έδινε η εφαρμογή την ίδια μέρα, μία και δύο μέρες πριν, και τι έγινε.</p><div id="recent"></div></section>
   <section class="panel"><h2>Αναδρομικός έλεγχος</h2><div id="back"></div></section>
@@ -82,7 +82,7 @@ fetch("accuracy.json",{cache:"no-store"}).then(r=>r.json()).then(j=>{
   const few=$("#few");
   if((j.scored_days||0)<30){few.hidden=false;few.textContent="Έχουμε λίγες μέρες δεδομένων: η καταγραφή ξεκίνησε στις "+(j.start?fd(j.start):"—")+" και έχουν κριθεί "+(j.scored_days||0)+" μέρες. Τα νούμερα θα σταθεροποιηθούν μετά από μερικές εβδομάδες, και κυρίως όταν περάσουν μέρες με απαγορευτικό.";}
   const L=j.by_lead||{},lname={"0":"Ίδια μέρα","1":"1 μέρα πριν","2":"2 μέρες πριν","3+":"3–6 μέρες πριν"};
-  $("#lead").innerHTML=Object.keys(L).length?table(H,Object.keys(lname).filter(k=>L[k]).map(k=>mrow(lname[k],L[k]))):'<p class="muted">Δεν έχει κριθεί ακόμη καμία μέρα. Η πρώτη σύγκριση γίνεται την επόμενη μέρα από την έναρξη.</p>';
+  $("#lead").innerHTML=Object.keys(L).length?table(H,Object.keys(lname).filter(k=>L[k]).map(k=>mrow(lname[k],L[k])).concat(j.evening_next_day?[mrow("Βραδινή πρόγνωση για αύριο",j.evening_next_day)]:[])):'<p class="muted">Δεν έχει κριθεί ακόμη καμία μέρα. Η πρώτη σύγκριση γίνεται την επόμενη μέρα από την έναρξη.</p>';
   const R=j.by_route||{};
   $("#route").innerHTML=Object.keys(R).length?table(H,Object.keys(R).map(k=>mrow(nm(k),R[k]))):'<p class="muted">—</p>';
   const st={ban:'<span class="tag ban">Απαγορευτικό</span>',no_ban_confirmed:'<span class="tag ok">Κανονικά</span>',unknown:'<span class="tag unk">Δεν βρέθηκε απαγορευτικό</span>'};
