@@ -118,7 +118,7 @@ td{font-family:var(--font-data)}
     <ul>
       <li>Ένταση ανέμου σε μποφόρ, με επιπλέον βάρος στις ριπές.</li>
       <li>Μπόνους +0,5 μποφόρ όταν ο άνεμος φυσάει από την πλευρά που εκθέτει τη συγκεκριμένη γραμμή.</li>
-      <li>Ισοδύναμο κύματος: 3,5 + 1,6 × σημαντικό ύψος κύματος (m). Κρατάμε όποιο από τα δύο είναι χειρότερο.</li>
+      <li>Ισοδύναμο κύματος, μόνο όταν το σημαντικό ύψος κύματος είναι από 2 m και πάνω: 3,5 + 1,6 × ύψος (m), έως 10,5 μποφόρ (π.χ. 2 m ≈ 6,7, 3 m ≈ 8,3 μποφόρ). Κάτω από 2 m το κύμα δεν μετράει, γιατί ο άνεμος εξηγεί ήδη τον κίνδυνο. Κρατάμε όποιο από τα δύο είναι χειρότερο.</li>
     </ul>
     <p>Η τιμή αυτή περνά από λογιστική καμπύλη με κέντρο το τυπικό όριο κάθε τύπου πλοίου:</p>
     <table><thead><tr><th>Τύπος</th><th>50% πιθανότητα στα</th></tr></thead>
@@ -160,16 +160,20 @@ const SLOTS=[{n:"Πρωί",a:6,b:11},{n:"Μεσημέρι",a:12,b:17},{n:"Βρά
 const $=s=>document.querySelector(s);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
-function bf(kn){if(kn==null)return 0;let b=0;for(let i=0;i<KT.length;i++){if(kn>=KT[i])b=i+1;}
+function bf(kn){if(!fin(kn)||kn<0)return 0;let b=0;for(let i=0;i<KT.length;i++){if(kn>=KT[i])b=i+1;}
   const lo=b===0?0:KT[b-1],hi=KT[b]??(lo+8);return Math.min(12,b+(kn-lo)/(hi-lo)*0.99);}
 function angDiff(a,b){const d=Math.abs(a-b)%360;return d>180?360-d:d;}
-function dir8(d){return Math.round(((d%360)+360)%360/45)%8;}
+function dir8(d){return fin(d)?Math.round(((d%360)+360)%360/45)%8:-1;}
+const fin=v=>typeof v==="number"&&Number.isFinite(v);
+// Ισοδύναμο κύματος: μετράει μόνο από 2 m και πάνω (κάτω από αυτό ο άνεμος εξηγεί ήδη τον κίνδυνο,
+// αλλιώς ένα ήρεμο 0,2 m έδινε «3,8 Bf» με 1 kn άνεμο). Όριο 10,5 Bf για να μη βγαίνει 16 Bf στα 8 m.
+const WAVE_MIN=2,WAVE_MAX_BF=10.5;
+function waveEq(hs){return fin(hs)&&hs>=WAVE_MIN?Math.min(WAVE_MAX_BF,3.5+1.6*hs):0;}
 function sev(route,w){
-  const b=bf(w.kn),g=bf(w.gust);
+  const b=bf(w.kn),g=fin(w.gust)?bf(w.gust):b;
   let s=b+0.25*Math.max(0,g-b);
-  if(route.exposed.some(e=>angDiff(e,w.dir)<=45))s+=0.5;
-  const waveEq=w.hs!=null?3.5+1.6*w.hs:0;
-  return Math.max(s,waveEq);
+  if(fin(w.dir)&&route.exposed.some(e=>angDiff(e,w.dir)<=45))s+=0.5;
+  return Math.min(12,Math.max(s,waveEq(w.hs)));
 }
 function prob(s,thr){return 1/(1+Math.exp(-1.8*(s-thr)));}
 function lvl(p){return p<0.25?"ok":p<0.6?"warn":"bad";}
@@ -183,7 +187,7 @@ function advice(l,slotBest){
 const cache={};
 async function fetchLive(route){
   const lat=route.pts.map(p=>p[0]).join(","),lon=route.pts.map(p=>p[1]).join(",");
-  const q="&forecast_days=7&timezone=Europe%2FAthens&cell_selection=sea";
+  const q="&forecast_days=7&timezone=Europe%2FAthens&timeformat=unixtime&cell_selection=sea";
   const fu="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kn"+q;
   const mu="https://marine-api.open-meteo.com/v1/marine?latitude="+lat+"&longitude="+lon+"&hourly=wave_height"+q;
   const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),8000);
@@ -192,10 +196,19 @@ async function fetchLive(route){
     if(!fr.ok)throw new Error("forecast "+fr.status);
     let f=await fr.json();let m=mr&&mr.ok?await mr.json():null;
     if(!Array.isArray(f))f=[f]; if(m&&!Array.isArray(m))m=[m];
-    const time=f[0].hourly.time;
-    return {live:true,time,pts:f.map((pf,i)=>({kn:pf.hourly.wind_speed_10m,gust:pf.hourly.wind_gusts_10m,dir:pf.hourly.wind_direction_10m,hs:m&&m[i]?m[i].hourly.wave_height:null}))};
+    const ut=f[0]&&f[0].hourly&&f[0].hourly.time;
+    if(!Array.isArray(ut)||!ut.length)throw new Error("forecast empty");
+    const time=ut.map(localStamp);
+    const waves=i=>{const mh=m&&m[i]&&m[i].hourly;if(!mh||!Array.isArray(mh.time)||!Array.isArray(mh.wave_height))return null;
+      const at=new Map(mh.time.map((x,k)=>[x,mh.wave_height[k]]));return ut.map(x=>at.has(x)?at.get(x):null);};
+    const arr=a=>Array.isArray(a)?a:[];
+    const pts=f.map((pf,i)=>{const h=(pf&&pf.hourly)||{};return {kn:arr(h.wind_speed_10m),gust:arr(h.wind_gusts_10m),dir:arr(h.wind_direction_10m),hs:waves(i)};});
+    if(!pts.some(p=>p.kn.some(fin)))throw new Error("forecast without wind");
+    return {live:true,time,pts};
   }finally{clearTimeout(t);}
 }
+const ATH=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Athens",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+function localStamp(sec){return ATH.format(new Date(sec*1000)).replace(" ","T");}
 function sampleData(route){
   const time=[],start=new Date();start.setHours(0,0,0,0);
   for(let h=0;h<168;h++){const d=new Date(start.getTime()+h*3600e3);
@@ -211,17 +224,17 @@ function sampleData(route){
     return {kn,gust,dir,hs};});
   return {live:false,time,pts};
 }
-async function getData(route){
+function getData(route){
   if(cache[route.id])return cache[route.id];
-  let d;try{d=await fetchLive(route);}catch(e){d=sampleData(route);}
-  cache[route.id]=d;return d;
+  const pr=fetchLive(route).catch(()=>{delete cache[route.id];return sampleData(route);});
+  cache[route.id]=pr;return pr;
 }
 
 function analyse(route,data,thr){
   const hours=data.time.map((t,i)=>{
     let worst=null;
-    data.pts.forEach(p=>{const w={kn:p.kn[i],gust:p.gust[i],dir:p.dir[i],hs:p.hs?p.hs[i]:null};
-      if(w.kn==null)return;const s=sev(route,w);if(!worst||s>worst.s)worst={...w,s};});
+    data.pts.forEach(p=>{const w={kn:p.kn&&p.kn[i],gust:p.gust&&p.gust[i],dir:p.dir&&p.dir[i],hs:p.hs?p.hs[i]:null};
+      if(!fin(w.kn))return;const s=sev(route,w);if(!worst||s>worst.s)worst={...w,s};});
     return {t,date:t.slice(0,10),hr:+t.slice(11,13),...(worst||{s:0,kn:0,gust:0,dir:0,hs:null})};
   });
   const days=[];
@@ -230,6 +243,8 @@ function analyse(route,data,thr){
     const win=d.hours.filter(h=>h.hr>=6);
     const peak=win.reduce((a,b)=>b.s>a.s?b:a,win[0]||d.hours[0]);
     d.peak=peak;d.p=prob(peak.s,thr);
+    const mx=k=>{const v=win.map(h=>h[k]).filter(fin);return v.length?Math.max(...v):null;};
+    d.max={kn:mx("kn"),gust:mx("gust"),hs:mx("hs")};
     d.slots=SLOTS.map(sl=>{const hs=d.hours.filter(h=>h.hr>=sl.a&&h.hr<=sl.b);
       const pk=hs.length?hs.reduce((a,b)=>b.s>a.s?b:a):null;return {...sl,p:pk?prob(pk.s,thr):null,pk};});
   });
@@ -249,13 +264,16 @@ function renderControls(){
 }
 function persist(){store.set("apopleo.route",state.route);try{history.replaceState(null,"","#"+state.route);}catch(e){}}
 
+let loadSeq=0;
 async function load(){
+  const seq=++loadSeq;
   const route=ROUTES.find(r=>r.id===state.route)||ROUTES[0];
   $("#route").value=route.id;
   const vk=state.vessel||route.vessel;
   document.querySelectorAll("#vessel button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===vk)));
   $("#status").textContent="Φόρτωση πρόγνωσης…";
   const data=await getData(route);
+  if(seq!==loadSeq)return;  // άλλαξε γραμμή/πλοίο όσο περιμέναμε: άλλη κλήση θα ζωγραφίσει
   const thrUse=(vk==="conv"&&LEARNED[route.id])?bf(LEARNED[route.id]):VESSELS[vk].thr;window.__thr=thrUse;
   const days=analyse(route,data,thrUse);
   const banner=$("#banner");
@@ -267,7 +285,7 @@ async function load(){
 function renderDays(days){
   $("#days").innerHTML=days.map((d,i)=>{const f=fmtDay(d.date),l=lvl(d.p);
     return '<button type="button" class="day" data-i="'+i+'" aria-pressed="'+(i===state.day)+'" aria-label="'+f.full+', κίνδυνος '+pct(d.p)+'">'+
-      '<span class="dn">'+(i===0?"Σήμερα":f.dn)+' '+f.dd.split(" ")[0]+'</span>'+
+      '<span class="dn">'+(d.date===localStamp(Date.now()/1000).slice(0,10)?"Σήμερα":f.dn)+' '+f.dd.split(" ")[0]+'</span>'+
       '<span class="pct lv-'+l+'">'+pct(d.p)+'</span>'+
       '<span class="bar"><i class="bg-'+l+'" style="width:'+Math.max(4,d.p*100)+'%"></i></span>'+
       '<span class="bf">έως '+d.peak.s.toFixed(1).replace(".",",")+' Bf</span></button>';}).join("");
@@ -277,7 +295,7 @@ $("#days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)r
   renderDetail(window.__route,window.__vk,window.__days[state.day]);});
 
 function renderDetail(route,vk,d){
-  const l=lvl(d.p),f=fmtDay(d.date),pk=d.peak,di=dir8(pk.dir);
+  const l=lvl(d.p),f=fmtDay(d.date),pk=d.peak,di=dir8(pk.dir),mx=d.max||{};
   const okSlots=d.slots.filter(s=>s.p!=null);
   const best=okSlots.length?okSlots.reduce((a,b)=>b.p<a.p?b:a):null;
   const thr=window.__thr||VESSELS[vk].thr;
@@ -286,10 +304,10 @@ function renderDetail(route,vk,d){
     '<p class="advice">'+advice(l,l==="warn"&&best?best.n:null)+'</p>'+
     '<div class="slots">'+d.slots.map(s=>s.p==null?'':'<div class="slot"><span class="t">'+s.n+' · '+String(s.a).padStart(2,"0")+':00–'+s.b+':59</span><span class="v lv-'+lvl(s.p)+'">'+pct(s.p)+'</span></div>').join("")+'</div>'+
     '<div class="facts">'+
-      fact("Μέγιστος άνεμος",Math.round(pk.kn)+" kn · "+Math.floor(bf(pk.kn))+" Bf")+
-      fact("Ριπές",Math.round(pk.gust)+" kn")+
-      fact("Φορά",DIRS[di]+" · "+WIND_NAMES[di])+
-      fact("Κύμα",pk.hs!=null?pk.hs.toFixed(1).replace(".",",")+" m":"—")+
+      fact("Μέγιστος άνεμος",fin(mx.kn)?Math.round(mx.kn)+" kn · "+Math.floor(bf(mx.kn))+" Bf":"—")+
+      fact("Ριπές",fin(mx.gust)?Math.round(mx.gust)+" kn":"—")+
+      fact("Φορά",di>=0?DIRS[di]+" · "+WIND_NAMES[di]:"—")+
+      fact("Κύμα",fin(mx.hs)?mx.hs.toFixed(1).replace(".",",")+" m":"—")+
     '</div>'+
     '<div class="chart">'+chart(d.hours,thr)+'</div>'+
     '<div class="legend"><span><i class="bg-ok"></i>χαμηλός</span><span><i class="bg-warn"></i>οριακός</span><span><i class="bg-bad"></i>υψηλός κίνδυνος</span><span>— — όριο '+VESSELS[vk].name.toLowerCase()+'</span><span style="color:var(--accent)">━ ύψος κύματος (δεξιός άξονας)</span></div>';
@@ -298,15 +316,15 @@ function fact(k,v){return '<div class="fact"><div class="k">'+k+'</div><div clas
 function chart(hours,thr){
   const W=720,H=220,L=34,R=34,T=12,B=26,iw=W-L-R,ih=H-T-B,maxS=12,maxH=6;
   const y=s=>T+ih-(Math.min(s,maxS)/maxS)*ih, yh=h=>T+ih-(Math.min(h,maxH)/maxH)*ih;
-  const bw=iw/24;let g="";
+  const n=Math.max(24,hours.length),off=hours.length<24&&hours.length&&hours[0].hr>0?hours[0].hr:0,bw=iw/n;let g="";
   [0,3,6,9,12].forEach(v=>{g+='<line class="grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'"/><text x="'+(L-6)+'" y="'+(y(v)+3)+'" text-anchor="end">'+v+'</text>';});
   [0,2,4,6].forEach(v=>{g+='<text x="'+(W-R+6)+'" y="'+(yh(v)+3)+'">'+v+'m</text>';});
   g+='<text x="'+(L+4)+'" y="'+(T+10)+'">Bf</text>';
-  hours.forEach((h,i)=>{const x=L+i*bw+1.5,p=prob(h.s,thr);
+  hours.forEach((h,i)=>{const x=L+(i+off)*bw+1.5,p=prob(h.s,thr);
     g+='<rect class="b-'+lvl(p)+'" x="'+x+'" y="'+y(h.s)+'" width="'+(bw-3)+'" height="'+(T+ih-y(h.s))+'" rx="2"><title>'+String(h.hr).padStart(2,"0")+':00 · '+h.s.toFixed(1)+' Bf · '+pct(p)+'</title></rect>';
-    if(i%3===0)g+='<text x="'+(x+bw/2-1.5)+'" y="'+(H-8)+'" text-anchor="middle">'+String(h.hr).padStart(2,"0")+'</text>';});
-  const wv=hours.filter(h=>h.hs!=null);
-  if(wv.length)g+='<polyline class="wave" points="'+hours.map((h,i)=>h.hs==null?"":(L+i*bw+bw/2)+","+yh(h.hs)).filter(Boolean).join(" ")+'"/>';
+    if(h.hr%3===0)g+='<text x="'+(x+bw/2-1.5)+'" y="'+(H-8)+'" text-anchor="middle">'+String(h.hr).padStart(2,"0")+'</text>';});
+  const wv=hours.filter(h=>fin(h.hs));
+  if(wv.length)g+='<polyline class="wave" points="'+hours.map((h,i)=>!fin(h.hs)?"":(L+(i+off)*bw+bw/2)+","+yh(h.hs)).filter(Boolean).join(" ")+'"/>';
   g+='<line class="thr" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(thr)+'" y2="'+y(thr)+'"/>';
   return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ωριαίος δείκτης κινδύνου σε μποφόρ">'+g+'</svg>';
 }
