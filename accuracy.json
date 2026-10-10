@@ -1,0 +1,135 @@
+{
+ "generated": "2026-10-10T10:25+03:00",
+ "today": "2026-10-10",
+ "start": "2026-10-10",
+ "routes": {
+  "rafina-tinos": "Ραφήνα → Άνδρος · Τήνος · Μύκονος",
+  "piraeus-syros": "Πειραιάς → Σύρος · Τήνος · Μύκονος",
+  "piraeus-santorini": "Πειραιάς → Πάρος · Νάξος · Σαντορίνη",
+  "lavrio-kea": "Λαύριο → Κέα · Κύθνος",
+  "piraeus-heraklion": "Πειραιάς → Ηράκλειο",
+  "argosaronic": "Πειραιάς → Αίγινα · Πόρος · Ύδρα",
+  "kyllini-zakynthos": "Κυλλήνη → Ζάκυνθος",
+  "volos-sporades": "Βόλος → Σκιάθος · Σκόπελος · Αλόννησος",
+  "agmarina-styra": "Αγία Μαρίνα → Νέα Στύρα",
+  "corfu-igoumenitsa": "Κέρκυρα → Ηγουμενίτσα",
+  "kavala-thasos": "Καβάλα → Πρίνος (Θάσος)"
+ },
+ "scored_days": 0,
+ "scored_rows": 0,
+ "confirmed_rows": 0,
+ "backfill": {
+  "start": "2022-01-01",
+  "end": "2025-09-19",
+  "all": {
+   "n": 14938,
+   "ban_days": 277,
+   "hit50": 0.458,
+   "hit25": 0.715,
+   "fa50": 0.0256,
+   "fa25": 0.0663,
+   "brier": 0.0262
+  },
+  "by_route": {
+   "agmarina-styra": {
+    "n": 1358,
+    "ban_days": 5,
+    "hit50": 0.8,
+    "hit25": 1.0,
+    "fa50": 0.0584,
+    "fa25": 0.1316,
+    "brier": 0.0404
+   },
+   "argosaronic": {
+    "n": 1358,
+    "ban_days": 8,
+    "hit50": 0.0,
+    "hit25": 0.25,
+    "fa50": 0.0074,
+    "fa25": 0.0304,
+    "brier": 0.0116
+   },
+   "corfu-igoumenitsa": {
+    "n": 1358,
+    "ban_days": 2,
+    "hit50": 0.5,
+    "hit25": 1.0,
+    "fa50": 0.0155,
+    "fa25": 0.0369,
+    "brier": 0.012
+   },
+   "kavala-thasos": {
+    "n": 1358,
+    "ban_days": 6,
+    "hit50": 0.667,
+    "hit25": 0.833,
+    "fa50": 0.0459,
+    "fa25": 0.0806,
+    "brier": 0.0308
+   },
+   "kyllini-zakynthos": {
+    "n": 1358,
+    "ban_days": 1,
+    "hit50": 1.0,
+    "hit25": 1.0,
+    "fa50": 0.0037,
+    "fa25": 0.0066,
+    "brier": 0.0022
+   },
+   "lavrio-kea": {
+    "n": 1358,
+    "ban_days": 49,
+    "hit50": 0.143,
+    "hit25": 0.469,
+    "fa50": 0.0023,
+    "fa25": 0.0222,
+    "brier": 0.0244
+   },
+   "piraeus-heraklion": {
+    "n": 1358,
+    "ban_days": 8,
+    "hit50": 0.5,
+    "hit25": 0.625,
+    "fa50": 0.0237,
+    "fa25": 0.0637,
+    "brier": 0.0234
+   },
+   "piraeus-santorini": {
+    "n": 1358,
+    "ban_days": 71,
+    "hit50": 0.507,
+    "hit25": 0.746,
+    "fa50": 0.0264,
+    "fa25": 0.0785,
+    "brier": 0.038
+   },
+   "piraeus-syros": {
+    "n": 1358,
+    "ban_days": 71,
+    "hit50": 0.577,
+    "hit25": 0.803,
+    "fa50": 0.0373,
+    "fa25": 0.1088,
+    "brier": 0.0431
+   },
+   "rafina-tinos": {
+    "n": 1358,
+    "ban_days": 52,
+    "hit50": 0.538,
+    "hit25": 0.788,
+    "fa50": 0.0306,
+    "fa25": 0.1003,
+    "brier": 0.0364
+   },
+   "volos-sporades": {
+    "n": 1358,
+    "ban_days": 4,
+    "hit50": 0.25,
+    "hit25": 1.0,
+    "fa50": 0.031,
+    "fa25": 0.0724,
+    "brier": 0.0261
+   }
+  }
+ }
+}

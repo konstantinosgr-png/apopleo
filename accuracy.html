@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Πόσο σωστές βγαίνουν οι προβλέψεις απαγορευτικού του «Αποπλέει;»: καθημερινή σύγκριση πρόβλεψης και πραγματικότητας.">
+<title>Ακρίβεια · Αποπλέει;</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f3f6f8; --surface:#ffffff; --ink:#0f2233; --muted:#5a6f80; --line:#d6e0e7;
+  --accent:#1d5fa3; --accent-ink:#ffffff;
+  --ok:#2f8a57; --warn:#c98a10; --bad:#c23b2e; --ok-bg:#e3f3ea; --warn-bg:#fbf0d6; --bad-bg:#f9e1de;
+  --font-ui:"Commissioner",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-data:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1620; --surface:#122230; --ink:#e4edf3; --muted:#90a6b6; --line:#24384a;
+  --accent:#6aa9e8; --accent-ink:#0b1620;
+  --ok:#5cc28a; --warn:#e8b54a; --bad:#f07a6c; --ok-bg:#16352a; --warn-bg:#3a2e12; --bad-bg:#40201d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1620; --surface:#122230; --ink:#e4edf3; --muted:#90a6b6; --line:#24384a;
+  --accent:#6aa9e8; --accent-ink:#0b1620;
+  --ok:#5cc28a; --warn:#e8b54a; --bad:#f07a6c; --ok-bg:#16352a; --warn-bg:#3a2e12; --bad-bg:#40201d; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px}
+h1{font-size:2rem;font-weight:800;letter-spacing:-.02em;margin:0;line-height:1.1;text-wrap:balance}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:4px 0 0;max-width:60ch}
+.status{font-family:var(--font-data);font-size:.75rem;color:var(--muted);text-align:right}
+.banner{border:1px solid var(--warn);background:var(--warn-bg);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:12px;overflow-x:auto}
+.panel h2{margin:0;font-size:1.15rem}
+.muted{color:var(--muted);max-width:68ch;margin:0}
+table{border-collapse:collapse;font-size:.85rem;width:100%}
+td,th{border-bottom:1px solid var(--line);padding:5px 10px 5px 0;text-align:left;white-space:nowrap}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+.lv-ok{color:var(--ok)} .lv-warn{color:var(--warn)} .lv-bad{color:var(--bad)}
+.tag{font-weight:700;font-size:.75rem;padding:2px 8px;border-radius:999px}
+.tag.ban{background:var(--bad-bg);color:var(--bad)} .tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.unk{background:var(--line);color:var(--muted)}
+.foot{font-size:.8rem;color:var(--muted)} .foot a,a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><a href="./" style="color:inherit;text-decoration:none">Αποπλέει<span>;</span></a> · Ακρίβεια</h1>
+      <p class="sub">Κάθε μέρα κρατάμε την πρόβλεψη της εφαρμογής και τη συγκρίνουμε με το τι έγινε τελικά. Τα δημοσιεύουμε όλα, και τα λάθη.</p>
+    </div>
+    <div class="status" id="status">Φόρτωση…</div>
+  </header>
+  <div class="banner" id="few" hidden></div>
+  <section class="panel"><h2>Ανά απόσταση πρόβλεψης</h2><div id="lead"></div></section>
+  <section class="panel"><h2>Ανά γραμμή (πρόβλεψη ίδιας ή προηγούμενης μέρας)</h2><div id="route"></div></section>
+  <section class="panel"><h2>Τελευταίες μέρες</h2><p class="muted">Πρόβλεψη που έδινε η εφαρμογή την ίδια μέρα, μία και δύο μέρες πριν, και τι έγινε.</p><div id="recent"></div></section>
+  <section class="panel"><h2>Αναδρομικός έλεγχος</h2><div id="back"></div></section>
+  <section class="panel"><h2>Πώς μετράμε</h2>
+    <p class="muted">«Έγινε απαγορευτικό» σημαίνει ότι βρήκαμε άρθρο σε in.gr, cyclades24.gr, ertnews.gr ή naftemporiki.gr για απαγορευτικό απόπλου λόγω καιρού σε λιμάνι της γραμμής. Αν δεν βρούμε τίποτα, η μέρα μετράει ως «χωρίς απαγορευτικό», αν και κάποιο μικρό απαγορευτικό μπορεί να μη γράφτηκε πουθενά. Γι’ αυτό το ποσοστό επιτυχίας είναι μάλλον λίγο χαμηλότερο από το πραγματικό.</p>
+    <p class="muted"><b>Πιάνει</b>: από τις μέρες με απαγορευτικό, σε πόσες η εφαρμογή έδειχνε τουλάχιστον 50% (ή 25%). <b>Ψευδείς συναγερμοί</b>: από τις μέρες χωρίς απαγορευτικό, σε πόσες έδειχνε τουλάχιστον 50%. <b>Brier</b>: μέσο τετραγωνικό σφάλμα της πιθανότητας (0 = τέλειο, όσο μικρότερο τόσο καλύτερο).</p>
+  </section>
+  <p class="foot"><a href="./">← Πίσω στην πρόγνωση</a> · Δεδομένα: <a href="accuracy.json">accuracy.json</a> · Πρόγνωση: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0)</p>
+</div>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const pc=v=>v==null?"—":Math.round(v*100)+"%", pc1=v=>v==null?"—":(v*100).toFixed(1).replace(".",",")+"%";
+const num=v=>v==null?"—":String(v).replace(".",",");
+const fd=d=>new Date(d+"T12:00").toLocaleDateString("el-GR",{weekday:"short",day:"numeric",month:"short"});
+const lv=p=>p==null?"":p<0.25?"lv-ok":p<0.6?"lv-warn":"lv-bad";
+function table(head,rows){return '<table><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join("")+'</tr></thead><tbody>'+rows.join("")+'</tbody></table>';}
+function mrow(label,m){return '<tr><td>'+label+'</td><td class="n">'+m.n+'</td><td class="n">'+m.ban_days+'</td><td class="n">'+pc(m.hit50)+'</td><td class="n">'+pc(m.hit25)+'</td><td class="n">'+pc1(m.fa50)+'</td><td class="n">'+num(m.brier)+'</td></tr>';}
+const H=["","Μέρες·γραμμές","Με απαγορευτικό","Πιάνει (≥50%)","Πιάνει (≥25%)","Ψευδείς συναγ.","Brier"];
+fetch("accuracy.json",{cache:"no-store"}).then(r=>r.json()).then(j=>{
+  const N=j.routes||{},nm=id=>(N[id]||id);
+  $("#status").textContent="Ενημέρωση "+new Date(j.generated).toLocaleString("el-GR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  const few=$("#few");
+  if((j.scored_days||0)<30){few.hidden=false;few.textContent="Έχουμε λίγες μέρες δεδομένων: η καταγραφή ξεκίνησε στις "+(j.start?fd(j.start):"—")+" και έχουν κριθεί "+(j.scored_days||0)+" μέρες. Τα νούμερα θα σταθεροποιηθούν μετά από μερικές εβδομάδες, και κυρίως όταν περάσουν μέρες με απαγορευτικό.";}
+  const L=j.by_lead||{},lname={"0":"Ίδια μέρα","1":"1 μέρα πριν","2":"2 μέρες πριν","3+":"3–6 μέρες πριν"};
+  $("#lead").innerHTML=Object.keys(L).length?table(H,Object.keys(lname).filter(k=>L[k]).map(k=>mrow(lname[k],L[k]))):'<p class="muted">Δεν έχει κριθεί ακόμη καμία μέρα. Η πρώτη σύγκριση γίνεται την επόμενη μέρα από την έναρξη.</p>';
+  const R=j.by_route||{};
+  $("#route").innerHTML=Object.keys(R).length?table(H,Object.keys(R).map(k=>mrow(nm(k),R[k]))):'<p class="muted">—</p>';
+  const st={ban:'<span class="tag ban">Απαγορευτικό</span>',no_ban_confirmed:'<span class="tag ok">Κανονικά</span>',unknown:'<span class="tag unk">Δεν βρέθηκε απαγορευτικό</span>'};
+  const rec=j.recent||[];
+  $("#recent").innerHTML=rec.length?table(["Μέρα","Γραμμή","Ίδια μέρα","1 μέρα πριν","2 μέρες πριν","Τι έγινε"],rec.map(r=>'<tr><td>'+fd(r.date)+'</td><td>'+nm(r.route)+'</td>'+[r.p0,r.p1,r.p2].map(p=>'<td class="n '+lv(p)+'">'+pc(p)+'</td>').join("")+'<td>'+(st[r.status]||r.status)+'</td></tr>')):'<p class="muted">Δεν υπάρχουν ακόμη κριμένες μέρες.</p>';
+  const b=j.backfill;
+  $("#back").innerHTML=b?'<p class="muted">Ίδιος υπολογισμός με την εφαρμογή, πάνω στο αρχείο παλιών προγνώσεων του Open-Meteo ('+fd(b.start)+' – '+fd(b.end)+'), απέναντι στα απαγορευτικά που βρήκαμε στις ειδήσεις. Αντιστοιχεί σε πρόβλεψη της ίδιας μέρας, άρα είναι λίγο αισιόδοξο για προβλέψεις πολλών ημερών.</p>'+table(H,[mrow("Όλες οι γραμμές",b.all)].concat(Object.keys(b.by_route).map(k=>mrow(nm(k),b.by_route[k])))):'<p class="muted">—</p>';
+}).catch(()=>{$("#status").textContent="Δεν φορτώθηκαν τα δεδομένα";});
+})();
+</script>
+</body>
+</html>
