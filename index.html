@@ -247,9 +247,10 @@ async function fetchLive(route){
 const ATH=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Athens",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
 function localStamp(sec){return ATH.format(new Date(sec*1000)).replace(" ","T");}
 function sampleData(route){
-  const time=[],start=new Date();start.setHours(0,0,0,0);
-  for(let h=0;h<168;h++){const d=new Date(start.getTime()+h*3600e3);
-    time.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+"T"+String(d.getHours()).padStart(2,"0")+":00");}
+  // ώρες ρολογιού Αθήνας (Europe/Athens), ανεξάρτητα από τη ζώνη ώρας της συσκευής
+  const time=[],d0=localStamp(Date.now()/1000).slice(0,10),base=Date.parse(d0+"T00:00:00Z");
+  for(let h=0;h<168;h++){const d=new Date(base+Math.floor(h/24)*864e5);
+    time.push(d.toISOString().slice(0,10)+"T"+String(h%24).padStart(2,"0")+":00");}
   const pts=route.pts.map((p,i)=>{const kn=[],gust=[],dir=[],hs=[];
     for(let h=0;h<168;h++){const day=h/24,hr=h%24;
       const ev=30*Math.exp(-Math.pow((day-2.6)/0.9,2))+20*Math.exp(-Math.pow((day-5.6)/0.6,2));

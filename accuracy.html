@@ -54,14 +54,15 @@ td.n{font-family:var(--font-data);font-variant-numeric:tabular-nums}
     </div>
     <div class="status" id="status">Φόρτωση…</div>
   </header>
+  <p class="muted" id="conf" hidden></p>
   <div class="banner" id="few" hidden></div>
   <section class="panel"><h2>Ανά απόσταση πρόβλεψης</h2><p class="muted">Μετράμε την πρωινή πρόγνωση κάθε μέρας. Η βραδινή (γύρω στις 21:00) για την επόμενη μέρα φαίνεται χωριστά, όταν υπάρχει.</p><div id="lead"></div></section>
   <section class="panel"><h2>Ανά γραμμή (πρόβλεψη ίδιας ή προηγούμενης μέρας)</h2><div id="route"></div></section>
   <section class="panel"><h2>Τελευταίες μέρες</h2><p class="muted">Πρόβλεψη που έδινε η εφαρμογή την ίδια μέρα, μία και δύο μέρες πριν, και τι έγινε.</p><div id="recent"></div></section>
   <section class="panel"><h2>Αναδρομικός έλεγχος</h2><div id="back"></div></section>
   <section class="panel"><h2>Πώς μετράμε</h2>
-    <p class="muted">«Έγινε απαγορευτικό» σημαίνει ότι βρήκαμε άρθρο σε in.gr, cyclades24.gr, ertnews.gr ή naftemporiki.gr για απαγορευτικό απόπλου λόγω καιρού σε λιμάνι της γραμμής. Αν δεν βρούμε τίποτα, η μέρα μετράει ως «χωρίς απαγορευτικό», αν και κάποιο μικρό απαγορευτικό μπορεί να μη γράφτηκε πουθενά. Γι’ αυτό το ποσοστό επιτυχίας είναι μάλλον λίγο χαμηλότερο από το πραγματικό.</p>
-    <p class="muted"><b>Πιάνει</b>: από τις μέρες με απαγορευτικό, σε πόσες η εφαρμογή έδειχνε τουλάχιστον 50% (ή 25%). <b>Ψευδείς συναγερμοί</b>: από τις μέρες χωρίς απαγορευτικό, σε πόσες έδειχνε τουλάχιστον 50%. <b>Brier</b>: μέσο τετραγωνικό σφάλμα της πιθανότητας (0 = τέλειο, όσο μικρότερο τόσο καλύτερο).</p>
+    <p class="muted">«Έγινε απαγορευτικό» σημαίνει ότι βρήκαμε άρθρο ειδήσεων για απαγορευτικό απόπλου λόγω καιρού σε λιμάνι της γραμμής, για τη συγκεκριμένη μέρα. «Κανονικά» μετράει μόνο με θετική ένδειξη (άρθρο που λέει ρητά «κανονικά τα δρομολόγια») ή όταν ΟΛΕΣ οι πηγές ειδήσεων απάντησαν χωρίς σφάλμα, δεν βρέθηκε απαγορευτικό, και η πρόγνωση της ίδιας ή της προηγούμενης μέρας ήταν κάτω από 50%. Μέρες με άγνωστη έκβαση (π.χ. πηγές που δεν απάντησαν) και άρθρα γενικά, χωρίς λιμάνι της γραμμής, δεν μετρούν. Μια μέρα κρίνεται οριστικά δύο μέρες μετά.</p>
+    <p class="muted"><b>Πιάνει</b>: από τις μέρες με απαγορευτικό, σε πόσες η εφαρμογή έδειχνε τουλάχιστον 50% (ή 25%). <b>Ψευδείς συναγερμοί</b>: από τις μέρες χωρίς απαγορευτικό, σε πόσες έδειχνε τουλάχιστον 50%. <b>Brier</b>: μέσο τετραγωνικό σφάλμα της πιθανότητας (0 = τέλειο, όσο μικρότερο τόσο καλύτερο). <b>BSS</b>: πόσο καλύτερο είναι από την κλιματολογία (ποσοστό απαγορευτικού της γραμμής στα προηγούμενα χρόνια)· 0 = ίδιο, θετικό = καλύτερο. <b>δ/υ</b>: δεν ορίζεται (π.χ. καμία μέρα με απαγορευτικό).</p>
   </section>
   <p class="foot"><a href="./">← Πίσω στην πρόγνωση</a> · Δεδομένα: <a href="accuracy.json">accuracy.json</a> · Πρόγνωση: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0)</p>
 </div>
@@ -74,22 +75,29 @@ const num=v=>v==null?"—":String(v).replace(".",",");
 const fd=d=>new Date(d+"T12:00").toLocaleDateString("el-GR",{weekday:"short",day:"numeric",month:"short"});
 const lv=p=>p==null?"":p<0.25?"lv-ok":p<0.6?"lv-warn":"lv-bad";
 function table(head,rows){return '<table><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join("")+'</tr></thead><tbody>'+rows.join("")+'</tbody></table>';}
-function mrow(label,m){return '<tr><td>'+label+'</td><td class="n">'+m.n+'</td><td class="n">'+m.ban_days+'</td><td class="n">'+pc(m.hit50)+'</td><td class="n">'+pc(m.hit25)+'</td><td class="n">'+pc1(m.fa50)+'</td><td class="n">'+num(m.brier)+'</td></tr>';}
-const H=["","Μέρες·γραμμές","Με απαγορευτικό","Πιάνει (≥50%)","Πιάνει (≥25%)","Ψευδείς συναγ.","Brier"];
+const na=t=>'<span class="muted" title="'+t+'">δ/υ</span>';
+function mrow(label,m){return '<tr><td>'+label+'</td><td class="n">'+m.n+'</td><td class="n">'+m.ban_days+'</td>'+
+  '<td class="n">'+(m.hit50==null?na("Καμία μέρα με απαγορευτικό: δεν ορίζεται"):pc(m.hit50))+'</td>'+
+  '<td class="n">'+(m.hit25==null?na("Καμία μέρα με απαγορευτικό: δεν ορίζεται"):pc(m.hit25))+'</td>'+
+  '<td class="n">'+(m.fa50==null?na("Καμία μέρα χωρίς απαγορευτικό: δεν ορίζεται"):pc1(m.fa50))+'</td>'+
+  '<td class="n">'+num(m.brier)+'</td><td class="n">'+(m.bss==null?"—":num(m.bss))+'</td></tr>';}
+const H=["","Μέρες·γραμμές","Με απαγορευτικό","Πιάνει (≥50%)","Πιάνει (≥25%)","Ψευδείς συναγ.","Brier","BSS"];
 fetch("accuracy.json",{cache:"no-store"}).then(r=>r.json()).then(j=>{
   const N=j.routes||{},nm=id=>(N[id]||id);
   $("#status").textContent="Ενημέρωση "+new Date(j.generated).toLocaleString("el-GR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  const conf=$("#conf");if(conf){conf.hidden=false;const ex=j.excluded||{},nx=Object.values(ex).reduce((a,b)=>a+b,0);
+    conf.textContent="Κρίθηκαν "+(j.judged_days||0)+" μέρες· με επιβεβαιωμένη έκβαση "+(j.confirmed_days||0)+" μέρες ("+(j.confirmed_rows||0)+" γραμμές·μέρες). "+(nx?nx+" γραμμές·μέρες με άγνωστη έκβαση ή χαμηλή βεβαιότητα δεν μετρούν στα νούμερα.":"");}
   const few=$("#few");
   if((j.scored_days||0)<30){few.hidden=false;few.textContent="Έχουμε λίγες μέρες δεδομένων: η καταγραφή ξεκίνησε στις "+(j.start?fd(j.start):"—")+" και έχουν κριθεί "+(j.scored_days||0)+" μέρες. Τα νούμερα θα σταθεροποιηθούν μετά από μερικές εβδομάδες, και κυρίως όταν περάσουν μέρες με απαγορευτικό.";}
   const L=j.by_lead||{},lname={"0":"Ίδια μέρα","1":"1 μέρα πριν","2":"2 μέρες πριν","3+":"3–6 μέρες πριν"};
   $("#lead").innerHTML=Object.keys(L).length?table(H,Object.keys(lname).filter(k=>L[k]).map(k=>mrow(lname[k],L[k])).concat(j.evening_next_day?[mrow("Βραδινή πρόγνωση για αύριο",j.evening_next_day)]:[])):'<p class="muted">Δεν έχει κριθεί ακόμη καμία μέρα. Η πρώτη σύγκριση γίνεται την επόμενη μέρα από την έναρξη.</p>';
   const R=j.by_route||{};
   $("#route").innerHTML=Object.keys(R).length?table(H,Object.keys(R).map(k=>mrow(nm(k),R[k]))):'<p class="muted">—</p>';
-  const st={ban:'<span class="tag ban">Απαγορευτικό</span>',no_ban_confirmed:'<span class="tag ok">Κανονικά</span>',unknown:'<span class="tag unk">Δεν βρέθηκε απαγορευτικό</span>'};
+  const st={ban:'<span class="tag ban">Απαγορευτικό</span>',no_ban_confirmed:'<span class="tag ok">Κανονικά</span>',no_ban_inferred:'<span class="tag ok">Κανονικά (χωρίς ειδήσεις)</span>',unknown:'<span class="tag unk">Άγνωστο · δεν μετρά</span>'};
   const rec=j.recent||[];
   $("#recent").innerHTML=rec.length?table(["Μέρα","Γραμμή","Ίδια μέρα","1 μέρα πριν","2 μέρες πριν","Τι έγινε"],rec.map(r=>'<tr><td>'+fd(r.date)+'</td><td>'+nm(r.route)+'</td>'+[r.p0,r.p1,r.p2].map(p=>'<td class="n '+lv(p)+'">'+pc(p)+'</td>').join("")+'<td>'+(st[r.status]||r.status)+'</td></tr>')):'<p class="muted">Δεν υπάρχουν ακόμη κριμένες μέρες.</p>';
   const b=j.backfill;
-  $("#back").innerHTML=b?'<p class="muted">Ίδιος υπολογισμός με την εφαρμογή, πάνω στο αρχείο παλιών προγνώσεων του Open-Meteo ('+fd(b.start)+' – '+fd(b.end)+'), απέναντι στα απαγορευτικά που βρήκαμε στις ειδήσεις. Αντιστοιχεί σε πρόβλεψη της ίδιας μέρας, άρα είναι λίγο αισιόδοξο για προβλέψεις πολλών ημερών.</p>'+table(H,[mrow("Όλες οι γραμμές",b.all)].concat(Object.keys(b.by_route).map(k=>mrow(nm(k),b.by_route[k])))):'<p class="muted">—</p>';
+  $("#back").innerHTML=b?'<p class="muted">Ίδιος υπολογισμός με την εφαρμογή, πάνω στο αρχείο παλιών προγνώσεων του Open-Meteo ('+fd(b.start)+' – '+fd(b.end)+'), απέναντι στα απαγορευτικά που βρήκαμε στις ειδήσεις. Μόνο η περίοδος ελέγχου, που το μοντέλο δεν είδε στην εκπαίδευση. Αντιστοιχεί σε πρόβλεψη της ίδιας μέρας, άρα είναι λίγο αισιόδοξο για προβλέψεις πολλών ημερών.</p>'+table(H,[mrow("Όλες οι γραμμές",b.all)].concat(Object.keys(b.by_route).map(k=>mrow(nm(k),b.by_route[k])))):'<p class="muted">—</p>';
 }).catch(()=>{$("#status").textContent="Δεν φορτώθηκαν τα δεδομένα";});
 })();
 </script>
