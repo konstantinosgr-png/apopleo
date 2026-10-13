@@ -90,6 +90,11 @@ details p,details li{color:var(--muted);max-width:68ch}
 table{border-collapse:collapse;font-size:.85rem}
 td,th{border-bottom:1px solid var(--line);padding:4px 10px 4px 0;text-align:left}
 td{font-family:var(--font-data)}
+.report{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:.88rem}
+.report span{color:var(--muted);flex:1 1 220px}
+.report input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.report a{font-weight:600;text-decoration:none;padding:9px 14px;border-radius:8px;background:var(--accent);color:var(--accent-ink);white-space:nowrap}
+.report a:focus-visible,.report input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .foot{font-size:.8rem;color:var(--muted)}
 .foot a{color:var(--accent)}
 @media (prefers-reduced-motion:no-preference){.day .bar i{transition:width .4s ease}}
@@ -121,6 +126,13 @@ td{font-family:var(--font-data)}
   <div class="days" id="days"></div>
 
   <section class="panel" id="detail" aria-live="polite"></section>
+
+  <div class="report">
+    <span>Έπεσε απαγορευτικό στη γραμμή; Βοήθησέ μας να βελτιώσουμε την πρόβλεψη.</span>
+    <label class="lbl" for="repDate" style="margin:0">Ημερομηνία</label>
+    <input type="date" id="repDate">
+    <a id="repBtn" href="https://github.com/konstantinosgr-png/apopleo/issues/new" target="_blank" rel="noopener">Ανέφερε απαγορευτικό</a>
+  </div>
 
   <details>
     <summary>Πώς υπολογίζεται ο κίνδυνος</summary>
@@ -336,7 +348,7 @@ async function load(){
   const banner=$("#banner");
   if(data.live){banner.hidden=true;$("#status").textContent="Ζωντανή πρόγνωση · "+new Date().toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"});}
   else{banner.hidden=false;banner.textContent="Δεν ήταν δυνατή η σύνδεση με την υπηρεσία καιρού, οπότε βλέπεις παράδειγμα πρόγνωσης, όχι πραγματικά δεδομένα. Δοκίμασε ξανά σε λίγο.";$("#status").textContent="Παράδειγμα δεδομένων";}
-  renderDays(days);renderDetail(route,vk,days[state.day]||days[0]);
+  renderDays(days);renderDetail(route,vk,days[state.day]||days[0]);setReportDate((days[state.day]||days[0]||{}).date);
   window.__days=days;window.__route=route;window.__vk=vk;
 }
 function renderDays(days){
@@ -350,7 +362,7 @@ function renderDays(days){
 }
 $("#days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;state.day=+b.dataset.i;
   document.querySelectorAll(".day").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
-  renderDetail(window.__route,window.__vk,window.__days[state.day]);});
+  renderDetail(window.__route,window.__vk,window.__days[state.day]);setReportDate(window.__days[state.day].date);});
 
 function agTitle(d){return d.mm.agree+" από "+d.mm.n+" μοντέλα πρόγνωσης βγάζουν το ίδιο συμπέρασμα (πάνω ή κάτω από 50%)· εύρος "+pct(d.mm.lo)+"–"+pct(d.mm.hi);}
 function mmBlock(d){
@@ -398,9 +410,21 @@ function chart(hours,thr){
   return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Ωριαίος δείκτης κινδύνου σε μποφόρ">'+g+'</svg>';
 }
 
+function reportUrl(){
+  const r=ROUTES.find(x=>x.id===state.route)||ROUTES[0],dt=($("#repDate")&&$("#repDate").value)||"";
+  const body="**Γραμμή:** "+r.name+" ("+r.id+")\n**Ημερομηνία:** "+dt+"\n**Τύπος πλοίου:** "+VESSELS[state.vessel||r.vessel].name+
+    "\n**Ώρα / διάρκεια (αν ξέρεις):** \n**Πηγή (λιμεναρχείο, εταιρεία, ειδήσεις):** \n**Σχόλια:** \n";
+  return "https://github.com/konstantinosgr-png/apopleo/issues/new?title="+encodeURIComponent("Απαγορευτικό: "+r.name+" · "+dt)+
+    "&body="+encodeURIComponent(body)+"&labels="+encodeURIComponent("απαγορευτικό");
+}
+function syncReport(){const a=$("#repBtn");if(a)a.href=reportUrl();}
+function setReportDate(d){const i=$("#repDate");if(i&&d)i.value=d;syncReport();}
+
 renderControls();
 const hash=(location.hash||"").slice(1),saved=store.get("apopleo.route");
 if(ROUTES.some(r=>r.id===hash))state.route=hash;else if(saved&&ROUTES.some(r=>r.id===saved))state.route=saved;
+$("#repDate").value=localStamp(Date.now()/1000).slice(0,10);
+$("#repDate").addEventListener("input",syncReport);$("#repBtn").addEventListener("click",syncReport);syncReport();
 load();
 })();
 </script>
