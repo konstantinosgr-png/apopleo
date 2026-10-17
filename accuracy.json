@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-17T21:15+03:00",
+ "generated": "2026-10-17T21:16+03:00",
  "today": "2026-10-17",
  "start": "2026-10-10",
  "routes": {
@@ -15,22 +15,34 @@
   "corfu-igoumenitsa": "Κέρκυρα → Ηγουμενίτσα",
   "kavala-thasos": "Καβάλα → Πρίνος (Θάσος)"
  },
- "judged_days": 3,
- "judged_rows": 33,
- "scored_days": 1,
- "confirmed_days": 1,
- "confirmed_rows": 7,
- "scored_rows": 28,
+ "evening_next_day": {
+  "n": 6,
+  "ban_days": 6,
+  "no_ban_days": 0,
+  "hit50": 1.0,
+  "hit25": 1.0,
+  "fa50": null,
+  "fa25": null,
+  "brier": 0.0433,
+  "brier_ref": 0.8991,
+  "bss": null
+ },
+ "judged_days": 4,
+ "judged_rows": 44,
+ "scored_days": 2,
+ "confirmed_days": 2,
+ "confirmed_rows": 13,
+ "scored_rows": 52,
  "excluded": {
-  "low_unknown": 19,
-  "no_ban_inferred": 7
+  "low_unknown": 21,
+  "no_ban_inferred": 10
  },
  "inferred": {
   "indicative": true,
-  "days": 1,
-  "rows": 10,
-  "fa50": 0.0,
-  "fa25": 0.0
+  "days": 2,
+  "rows": 13,
+  "fa50": 0.0769,
+  "fa25": 0.0769
  },
  "climatology": {
   "source": "labels_hist.csv",
@@ -38,60 +50,157 @@
   "rate": 0.038
  },
  "by_lead": {
-  "2": {
-   "n": 7,
-   "ban_days": 7,
+  "1": {
+   "n": 6,
+   "ban_days": 6,
    "no_ban_days": 0,
-   "hit50": 0.571,
-   "hit25": 0.714,
+   "hit50": 1.0,
+   "hit25": 1.0,
    "fa50": null,
    "fa25": null,
-   "brier": 0.2737,
-   "brier_ref": 0.9013,
+   "brier": 0.0243,
+   "brier_ref": 0.8991,
+   "bss": null
+  },
+  "2": {
+   "n": 13,
+   "ban_days": 13,
+   "no_ban_days": 0,
+   "hit50": 0.769,
+   "hit25": 0.846,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.1586,
+   "brier_ref": 0.9003,
    "bss": null
   },
   "3+": {
-   "n": 21,
-   "ban_days": 21,
+   "n": 33,
+   "ban_days": 33,
    "no_ban_days": 0,
-   "hit50": 0.238,
-   "hit25": 0.429,
+   "hit50": 0.303,
+   "hit25": 0.545,
    "fa50": null,
    "fa25": null,
-   "brier": 0.5216,
-   "brier_ref": 0.9013,
+   "brier": 0.4568,
+   "brier_ref": 0.9005,
+   "bss": 0.493
+  }
+ },
+ "by_route": {
+  "argosaronic": {
+   "n": 1,
+   "ban_days": 1,
+   "no_ban_days": 0,
+   "hit50": 1.0,
+   "hit25": 1.0,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.0033,
+   "brier_ref": 0.9394,
+   "bss": null
+  },
+  "lavrio-kea": {
+   "n": 1,
+   "ban_days": 1,
+   "no_ban_days": 0,
+   "hit50": 1.0,
+   "hit25": 1.0,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.0344,
+   "brier_ref": 0.8895,
+   "bss": null
+  },
+  "piraeus-santorini": {
+   "n": 1,
+   "ban_days": 1,
+   "no_ban_days": 0,
+   "hit50": 1.0,
+   "hit25": 1.0,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.0084,
+   "brier_ref": 0.8548,
+   "bss": null
+  },
+  "piraeus-syros": {
+   "n": 1,
+   "ban_days": 1,
+   "no_ban_days": 0,
+   "hit50": 1.0,
+   "hit25": 1.0,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.0059,
+   "brier_ref": 0.8548,
+   "bss": null
+  },
+  "rafina-tinos": {
+   "n": 1,
+   "ban_days": 1,
+   "no_ban_days": 0,
+   "hit50": 1.0,
+   "hit25": 1.0,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.0931,
+   "brier_ref": 0.8831,
+   "bss": null
+  },
+  "volos-sporades": {
+   "n": 1,
+   "ban_days": 1,
+   "no_ban_days": 0,
+   "hit50": 1.0,
+   "hit25": 1.0,
+   "fa50": null,
+   "fa25": null,
+   "brier": 0.0008,
+   "brier_ref": 0.9732,
    "bss": null
   }
  },
- "by_route": {},
  "by_version": {
   "χωρίς-έκδοση": {
-   "first": "2026-10-15",
+   "first": "2026-10-14",
    "last": "2026-10-15",
    "by_lead": {
-    "2": {
-     "n": 7,
-     "ban_days": 7,
+    "1": {
+     "n": 6,
+     "ban_days": 6,
      "no_ban_days": 0,
-     "hit50": 0.571,
-     "hit25": 0.714,
+     "hit50": 1.0,
+     "hit25": 1.0,
      "fa50": null,
      "fa25": null,
-     "brier": 0.2737,
-     "brier_ref": 0.9013,
+     "brier": 0.0243,
+     "brier_ref": 0.8991,
+     "bss": null
+    },
+    "2": {
+     "n": 13,
+     "ban_days": 13,
+     "no_ban_days": 0,
+     "hit50": 0.769,
+     "hit25": 0.846,
+     "fa50": null,
+     "fa25": null,
+     "brier": 0.1586,
+     "brier_ref": 0.9003,
      "bss": null
     },
     "3+": {
-     "n": 21,
-     "ban_days": 21,
+     "n": 33,
+     "ban_days": 33,
      "no_ban_days": 0,
-     "hit50": 0.238,
-     "hit25": 0.429,
+     "hit50": 0.303,
+     "hit25": 0.545,
      "fa50": null,
      "fa25": null,
-     "brier": 0.5216,
-     "brier_ref": 0.9013,
-     "bss": null
+     "brier": 0.4568,
+     "brier_ref": 0.9005,
+     "bss": 0.493
     }
    }
   }
@@ -194,6 +303,105 @@
    "p0": null,
    "p1": null,
    "p2": 0.142,
+   "status": "ban",
+   "counted": true
+  },
+  {
+   "date": "2026-10-14",
+   "route": "agmarina-styra",
+   "p0": null,
+   "p1": 0.958,
+   "p2": 0.956,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-10-14",
+   "route": "argosaronic",
+   "p0": null,
+   "p1": 0.943,
+   "p2": 0.774,
+   "status": "ban",
+   "counted": true
+  },
+  {
+   "date": "2026-10-14",
+   "route": "corfu-igoumenitsa",
+   "p0": null,
+   "p1": 0.012,
+   "p2": 0.008,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-10-14",
+   "route": "kavala-thasos",
+   "p0": null,
+   "p1": 0.013,
+   "p2": 0.013,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-10-14",
+   "route": "kyllini-zakynthos",
+   "p0": null,
+   "p1": 0.006,
+   "p2": 0.008,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-10-14",
+   "route": "lavrio-kea",
+   "p0": null,
+   "p1": 0.815,
+   "p2": 0.769,
+   "status": "ban",
+   "counted": true
+  },
+  {
+   "date": "2026-10-14",
+   "route": "piraeus-heraklion",
+   "p0": null,
+   "p1": 0.902,
+   "p2": 0.903,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-10-14",
+   "route": "piraeus-santorini",
+   "p0": null,
+   "p1": 0.908,
+   "p2": 0.92,
+   "status": "ban",
+   "counted": true
+  },
+  {
+   "date": "2026-10-14",
+   "route": "piraeus-syros",
+   "p0": null,
+   "p1": 0.923,
+   "p2": 0.944,
+   "status": "ban",
+   "counted": true
+  },
+  {
+   "date": "2026-10-14",
+   "route": "rafina-tinos",
+   "p0": null,
+   "p1": 0.695,
+   "p2": 0.834,
+   "status": "ban",
+   "counted": true
+  },
+  {
+   "date": "2026-10-14",
+   "route": "volos-sporades",
+   "p0": null,
+   "p1": 0.972,
+   "p2": 0.938,
    "status": "ban",
    "counted": true
   },
