@@ -1,6 +1,6 @@
 {
- "generated": "2026-10-17T21:16+03:00",
- "today": "2026-10-17",
+ "generated": "2026-10-18T10:14+03:00",
+ "today": "2026-10-18",
  "start": "2026-10-10",
  "routes": {
   "rafina-tinos": "Ραφήνα → Άνδρος · Τήνος · Μύκονος",
@@ -27,15 +27,15 @@
   "brier_ref": 0.8991,
   "bss": null
  },
- "judged_days": 4,
- "judged_rows": 44,
- "scored_days": 2,
- "confirmed_days": 2,
- "confirmed_rows": 13,
- "scored_rows": 52,
+ "judged_days": 5,
+ "judged_rows": 55,
+ "scored_days": 3,
+ "confirmed_days": 3,
+ "confirmed_rows": 15,
+ "scored_rows": 60,
  "excluded": {
-  "low_unknown": 21,
-  "no_ban_inferred": 10
+  "low_unknown": 23,
+  "no_ban_inferred": 17
  },
  "inferred": {
   "indicative": true,
@@ -75,15 +75,15 @@
    "bss": null
   },
   "3+": {
-   "n": 33,
+   "n": 41,
    "ban_days": 33,
-   "no_ban_days": 0,
+   "no_ban_days": 8,
    "hit50": 0.303,
    "hit25": 0.545,
-   "fa50": null,
-   "fa25": null,
-   "brier": 0.4568,
-   "brier_ref": 0.9005,
+   "fa50": 0.0,
+   "fa25": 0.0,
+   "brier": 0.3679,
+   "brier_ref": 0.7259,
    "bss": 0.493
   }
  },
@@ -164,7 +164,7 @@
  "by_version": {
   "χωρίς-έκδοση": {
    "first": "2026-10-14",
-   "last": "2026-10-15",
+   "last": "2026-10-16",
    "by_lead": {
     "1": {
      "n": 6,
@@ -191,15 +191,15 @@
      "bss": null
     },
     "3+": {
-     "n": 33,
+     "n": 41,
      "ban_days": 33,
-     "no_ban_days": 0,
+     "no_ban_days": 8,
      "hit50": 0.303,
      "hit25": 0.545,
-     "fa50": null,
-     "fa25": null,
-     "brier": 0.4568,
-     "brier_ref": 0.9005,
+     "fa50": 0.0,
+     "fa25": 0.0,
+     "brier": 0.3679,
+     "brier_ref": 0.7259,
      "bss": 0.493
     }
    }
