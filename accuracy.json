@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-18T10:14+03:00",
+ "generated": "2026-10-18T21:18+03:00",
  "today": "2026-10-18",
  "start": "2026-10-10",
  "routes": {
@@ -34,8 +34,8 @@
  "confirmed_rows": 15,
  "scored_rows": 60,
  "excluded": {
-  "low_unknown": 23,
-  "no_ban_inferred": 17
+  "low_unknown": 24,
+  "no_ban_inferred": 16
  },
  "inferred": {
   "indicative": true,
