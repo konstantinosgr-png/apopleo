@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-26T10:21+02:00",
+ "generated": "2026-10-26T21:16+02:00",
  "today": "2026-10-26",
  "start": "2026-10-10",
  "routes": {
@@ -205,7 +205,7 @@
    }
   }
  },
- "learned_version": "920d6f44",
+ "learned_version": "c2e9d35b",
  "recent": [
   {
    "date": "2026-10-24",
