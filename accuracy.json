@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-01T10:18+02:00",
- "today": "2026-11-01",
+ "generated": "2026-11-02T10:17+02:00",
+ "today": "2026-11-02",
  "start": "2026-10-10",
  "routes": {
   "rafina-tinos": "Ραφήνα → Άνδρος · Τήνος · Μύκονος",
@@ -27,15 +27,15 @@
   "brier_ref": 0.8991,
   "bss": null
  },
- "judged_days": 15,
- "judged_rows": 165,
+ "judged_days": 16,
+ "judged_rows": 176,
  "scored_days": 5,
  "confirmed_days": 5,
  "confirmed_rows": 21,
  "scored_rows": 81,
  "excluded": {
-  "low_unknown": 71,
-  "no_ban_inferred": 71,
+  "low_unknown": 77,
+  "no_ban_inferred": 76,
   "low_ban": 2
  },
  "inferred": {
