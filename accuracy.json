@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-06T10:24+02:00",
- "today": "2026-11-06",
+ "generated": "2026-11-07T10:16+02:00",
+ "today": "2026-11-07",
  "start": "2026-10-10",
  "routes": {
   "rafina-tinos": "Ραφήνα → Άνδρος · Τήνος · Μύκονος",
@@ -27,23 +27,23 @@
   "brier_ref": 0.8911,
   "bss": null
  },
- "judged_days": 20,
- "judged_rows": 220,
+ "judged_days": 21,
+ "judged_rows": 231,
  "scored_days": 7,
  "confirmed_days": 7,
  "confirmed_rows": 27,
  "scored_rows": 96,
  "excluded": {
-  "no_ban_inferred": 96,
-  "low_unknown": 95,
+  "low_unknown": 101,
+  "no_ban_inferred": 101,
   "low_ban": 2
  },
  "inferred": {
   "indicative": true,
-  "days": 13,
-  "rows": 123,
-  "fa50": 0.0081,
-  "fa25": 0.0163
+  "days": 14,
+  "rows": 133,
+  "fa50": 0.0075,
+  "fa25": 0.015
  },
  "climatology": {
   "source": "labels_hist.csv",
@@ -280,6 +280,105 @@
  },
  "learned_version": "c2e9d35b",
  "recent": [
+  {
+   "date": "2026-11-05",
+   "route": "agmarina-styra",
+   "p0": 0.187,
+   "p1": 0.157,
+   "p2": 0.218,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "argosaronic",
+   "p0": 0.017,
+   "p1": 0.013,
+   "p2": 0.011,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "corfu-igoumenitsa",
+   "p0": 0.0,
+   "p1": 0.0,
+   "p2": 0.0,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "kavala-thasos",
+   "p0": 0.065,
+   "p1": 0.048,
+   "p2": 0.025,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "kyllini-zakynthos",
+   "p0": 0.0,
+   "p1": 0.0,
+   "p2": 0.0,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "lavrio-kea",
+   "p0": 0.07,
+   "p1": 0.058,
+   "p2": 0.057,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "piraeus-heraklion",
+   "p0": 0.04,
+   "p1": 0.036,
+   "p2": 0.03,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "piraeus-santorini",
+   "p0": 0.098,
+   "p1": 0.08,
+   "p2": 0.081,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "piraeus-syros",
+   "p0": 0.125,
+   "p1": 0.129,
+   "p2": 0.111,
+   "status": "unknown",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "rafina-tinos",
+   "p0": 0.086,
+   "p1": 0.075,
+   "p2": 0.073,
+   "status": "no_ban_inferred",
+   "counted": false
+  },
+  {
+   "date": "2026-11-05",
+   "route": "volos-sporades",
+   "p0": 0.068,
+   "p1": 0.038,
+   "p2": 0.036,
+   "status": "unknown",
+   "counted": false
+  },
   {
    "date": "2026-11-04",
    "route": "agmarina-styra",
@@ -871,105 +970,6 @@
    "p0": 0.037,
    "p1": 0.019,
    "p2": 0.034,
-   "status": "unknown",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "agmarina-styra",
-   "p0": 0.025,
-   "p1": 0.035,
-   "p2": 0.016,
-   "status": "unknown",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "argosaronic",
-   "p0": 0.016,
-   "p1": 0.022,
-   "p2": 0.013,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "corfu-igoumenitsa",
-   "p0": 0.005,
-   "p1": 0.009,
-   "p2": 0.002,
-   "status": "unknown",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "kavala-thasos",
-   "p0": 0.002,
-   "p1": 0.001,
-   "p2": 0.002,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "kyllini-zakynthos",
-   "p0": 0.016,
-   "p1": 0.012,
-   "p2": 0.007,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "lavrio-kea",
-   "p0": 0.001,
-   "p1": 0.001,
-   "p2": 0.001,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "piraeus-heraklion",
-   "p0": 0.001,
-   "p1": 0.001,
-   "p2": 0.0,
-   "status": "unknown",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "piraeus-santorini",
-   "p0": 0.001,
-   "p1": 0.001,
-   "p2": 0.001,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "piraeus-syros",
-   "p0": 0.001,
-   "p1": 0.001,
-   "p2": 0.001,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "rafina-tinos",
-   "p0": 0.001,
-   "p1": 0.001,
-   "p2": 0.001,
-   "status": "no_ban_inferred",
-   "counted": false
-  },
-  {
-   "date": "2026-10-22",
-   "route": "volos-sporades",
-   "p0": 0.001,
-   "p1": 0.001,
-   "p2": 0.001,
    "status": "unknown",
    "counted": false
   }
